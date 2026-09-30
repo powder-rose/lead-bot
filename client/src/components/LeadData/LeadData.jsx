@@ -73,7 +73,22 @@ export const LeadData = ({
                     />
                 </LeadField>
             </LeadFields>
+            <LeadField>
+                <label>
+                    Тема письма
+                </label>
 
+                <LeadInput
+                    name="subject"
+                    value={
+                        leadData.subject
+                    }
+                    onChange={
+                        onChange
+                    }
+                    placeholder="Тема обращения"
+                />
+            </LeadField>
             <LeadField>
                 <label>
                     Комментарий

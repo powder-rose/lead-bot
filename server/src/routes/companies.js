@@ -59,10 +59,14 @@ router.get("/filters", (req, res) => {
             data: getCompanyFilters(),
         });
     } catch (error) {
-        console.error("GET COMPANY FILTERS ERROR:", error.message);
+        console.error(
+            "GET COMPANY FILTERS ERROR:",
+            error.message
+        );
 
         res.status(500).json({
-            error: "Не удалось получить фильтры",
+            error:
+                "Не удалось получить фильтры",
             data: null,
         });
     }

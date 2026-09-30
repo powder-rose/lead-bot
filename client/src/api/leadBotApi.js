@@ -34,13 +34,24 @@ export const testFillForm = ({
     pageUrl,
     leadData,
     trigger,
+    formHint,
 }) => {
-    return request("/api/test-fill", {
-        method: "POST",
-        body: JSON.stringify({
-            pageUrl,
-            leadData,
-            trigger,
-        }),
-    });
+    return request(
+        "/api/test-fill",
+        {
+            method:
+                "POST",
+
+            body:
+                JSON.stringify({
+                    pageUrl,
+                    leadData,
+                    trigger,
+
+                    formHint:
+                        formHint ||
+                        null,
+                }),
+        }
+    );
 };

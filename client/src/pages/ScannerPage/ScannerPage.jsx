@@ -60,6 +60,7 @@ export const ScannerPage = () => {
         name: "",
         phone: "",
         email: "",
+        subject: "",
         message: "",
     });
 
@@ -169,6 +170,19 @@ export const ScannerPage = () => {
                         trigger:
                             form.trigger ||
                             null,
+
+                        formHint: {
+                            sourceFormIndex:
+                                form.sourceFormIndex,
+
+                        synthetic:
+                            form.synthetic ===
+                            true,
+
+                        source:
+                            form.source ||
+                            "page",
+                        },
                     });
 
                 setTestResult({

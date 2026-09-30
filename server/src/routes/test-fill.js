@@ -8,7 +8,9 @@ import {
 } from "../browser.js";
 
 import {
+    captureCandidateScreenshot,
     fillFieldSafely,
+    findFieldGroupByFormIndex,
     prepareCandidateFields,
     waitForFieldGroup,
 } from "../fields.js";
@@ -32,6 +34,7 @@ router.post(
             pageUrl,
             leadData,
             trigger,
+            formHint,
         } =
             req.body;
 
@@ -47,14 +50,14 @@ router.post(
                 });
         }
 
-        let browser;
+        let session;
 
         try {
-            const session =
-                await createBrowserSession();
-
-            browser =
-                session.browser;
+            session =
+                await createBrowserSession({
+                    blockHeavyResources:
+                        false,
+                });
 
             const {
                 context,
@@ -64,7 +67,17 @@ router.post(
 
             await gotoSafely(
                 page,
-                pageUrl
+                pageUrl,
+                {
+                    attempts:
+                        2,
+
+                    timeout:
+                        15000,
+
+                    settleDelay:
+                        150,
+                }
             );
 
             let workingPage =
@@ -117,24 +130,34 @@ router.post(
             }
 
             let candidate =
-                await waitForFieldGroup(
-                    workingPage
-                );
+                null;
+
+            if (
+                Number.isInteger(
+                    formHint
+                        ?.sourceFormIndex
+                ) &&
+                formHint.sourceFormIndex >=
+                0
+            ) {
+                candidate =
+                    await findFieldGroupByFormIndex(
+                        workingPage,
+                        formHint
+                            .sourceFormIndex
+                    );
+            }
+
 
             if (!candidate) {
-                const image =
-                    await workingPage
-                        .screenshot({
-                            type:
-                                "png",
+                candidate =
+                    await waitForFieldGroup(
+                        workingPage,
+                        3500
+                    );
+            }
 
-                            fullPage:
-                                false,
-                        })
-                        .catch(
-                            () => null
-                        );
-
+            if (!candidate) {
                 return res
                     .status(422)
                     .json({
@@ -143,14 +166,36 @@ router.post(
 
                         data: {
                             screenshot:
-                                image
-                                    ? `data:image/png;base64,${image.toString(
-                                        "base64"
-                                    )}`
-                                    : null,
-                        },
-                    });
-            }
+                                null,
+
+                            diagnostic: {
+                                pageUrl:
+                                    workingPage.url(),
+
+                                triggerUsed:
+                                    Boolean(
+                                        trigger
+                                    ),
+
+                                fastPathAttempted:
+                                    Number.isInteger(
+                                        formHint
+                                            ?.sourceFormIndex
+                                    ),
+
+                                sourceFormIndex:
+                                    formHint
+                                        ?.sourceFormIndex ??
+                                    null,
+
+                                frames:
+                                    workingPage
+                                        .frames()
+                                        .length,
+                                },
+                            },
+                        });
+                }
 
             candidate =
                 prepareCandidateFields(
@@ -202,6 +247,9 @@ router.post(
 
                     email:
                     leadData?.email,
+
+                    subject:
+                    leadData?.subject,
 
                     message:
                     leadData?.message,
@@ -263,21 +311,14 @@ router.post(
             }
 
             await workingPage.waitForTimeout(
-                500
+                120
             );
 
             const image =
-                await workingPage
-                    .screenshot({
-                        type:
-                            "png",
-
-                        fullPage:
-                            false,
-                    })
-                    .catch(
-                        () => null
-                    );
+                await captureCandidateScreenshot(
+                    workingPage,
+                    candidate
+                );
 
             res.json({
                 error:
@@ -313,6 +354,10 @@ router.post(
                         isModal:
                         candidate.isModal,
 
+                        fastPath:
+                            candidate.fastPath ===
+                            true,
+
                         fieldsFound:
                         candidate.fields
                             .length,
@@ -338,8 +383,8 @@ router.post(
                         null,
                 });
         } finally {
-            if (browser) {
-                await browser.close();
+            if (session) {
+                await session.close();
             }
         }
     }

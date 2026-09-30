@@ -37,6 +37,14 @@ export const getFieldType = (field) => {
         field?.autocomplete,
         field?.inputMode,
     ]
+    const directValue = [
+        field?.name,
+        field?.id,
+        field?.placeholder,
+        field?.ariaLabel,
+        field?.label,
+        field?.autocomplete,
+    ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -69,6 +77,43 @@ export const getFieldType = (field) => {
         return {
             label: "Email",
             type: "email",
+        };
+    }
+
+    if (
+        directValue.includes(
+            "subject"
+        ) ||
+        directValue.includes(
+            "mail_subject"
+        ) ||
+        directValue.includes(
+            "mail-subject"
+        ) ||
+        directValue.includes(
+            "topic"
+        ) ||
+        directValue.includes(
+            "tema"
+        ) ||
+        directValue.includes(
+            "тема письма"
+        ) ||
+        directValue.includes(
+            "тема сообщения"
+        ) ||
+        directValue.includes(
+            "тема обращения"
+        ) ||
+        directValue.trim() ===
+        "тема"
+    ) {
+        return {
+            label:
+                "Тема письма",
+
+            type:
+                "subject",
         };
     }
 

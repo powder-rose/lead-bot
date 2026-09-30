@@ -125,18 +125,67 @@ export const getCompanies = ({
 export const getCompanyFilters = () => {
     const getDistinct = (column) =>
         db.prepare(`
-            SELECT DISTINCT ${column} AS value
+            SELECT DISTINCT TRIM(${column}) AS value
             FROM companies
             WHERE ${column} IS NOT NULL
-            AND TRIM(${column}) <> ''
-            ORDER BY ${column} COLLATE NOCASE
-        `).all().map((row) => row.value);
+              AND TRIM(${column}) <> ''
+            ORDER BY value COLLATE NOCASE
+        `)
+            .all()
+            .map(
+                (row) =>
+                    row.value
+            );
+
+    const locations =
+        db.prepare(`
+            SELECT DISTINCT
+                TRIM(city) AS city,
+                TRIM(region) AS region
+            FROM companies
+            WHERE city IS NOT NULL
+              AND TRIM(city) <> ''
+              AND region IS NOT NULL
+              AND TRIM(region) <> ''
+            ORDER BY
+                region COLLATE NOCASE,
+                city COLLATE NOCASE
+        `)
+            .all()
+            .map(
+                (row) => ({
+                    city:
+                        row.city,
+
+                    region:
+                        row.region,
+                })
+            );
 
     return {
-        statuses: ["new", "scanned", "no_form", "error"],
-        categories: getDistinct("category"),
-        cities: getDistinct("city"),
-        regions: getDistinct("region"),
+        statuses: [
+            "new",
+            "scanned",
+            "no_form",
+            "error",
+        ],
+
+        categories:
+            getDistinct(
+                "category"
+            ),
+
+        cities:
+            getDistinct(
+                "city"
+            ),
+
+        regions:
+            getDistinct(
+                "region"
+            ),
+
+        locations,
     };
 };
 
