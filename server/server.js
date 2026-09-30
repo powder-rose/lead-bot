@@ -12,6 +12,10 @@ import testFillRouter from "./src/routes/test-fill.js";
 import companiesImportRouter
     from "./src/routes/companies-import.js";
 
+import {
+    closeSharedBrowser,
+} from "./src/browser.js";
+
 const app = express();
 
 app.use(cors());
@@ -49,11 +53,71 @@ app.use(
 );
 
 
-app.listen(
-    PORT,
-    () => {
+const server =
+    app.listen(
+        PORT,
+        () => {
+            console.log(
+                `Server started: http://localhost:${PORT}`
+            );
+        }
+    );
+
+
+let shuttingDown =
+    false;
+
+
+const shutdown =
+    async (signal) => {
+        if (shuttingDown) {
+            return;
+        }
+
+        shuttingDown =
+            true;
+
         console.log(
-            `Server started: http://localhost:${PORT}`
+            `Получен ${signal}. Завершаем сервер...`
         );
-    }
+
+        server.close(
+            async () => {
+                await closeSharedBrowser();
+
+                console.log(
+                    "LeadBot остановлен корректно"
+                );
+
+                process.exit(0);
+            }
+        );
+
+        /*
+         * Защита на случай зависшего HTTP-запроса.
+         */
+        setTimeout(
+            async () => {
+                await closeSharedBrowser();
+
+                process.exit(1);
+            },
+            5000
+        ).unref();
+    };
+
+
+process.on(
+    "SIGINT",
+    () => shutdown(
+        "SIGINT"
+    )
 );
+
+
+process.on(
+    "SIGTERM",
+    () => shutdown(
+        "SIGTERM"
+    )
+);  

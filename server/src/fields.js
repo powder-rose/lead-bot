@@ -54,9 +54,17 @@ export const detectFieldType = (
         field.surroundingText,
         field.type,
     ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
+    const directText = [
+    field.name,
+    field.id,
+    field.placeholder,
+    field.ariaLabel,
+    field.label,
+    field.autocomplete,
+    ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
     if (
         field.type === "tel" ||
@@ -110,6 +118,37 @@ export const detectFieldType = (
         )
     ) {
         return "email";
+    }
+
+    if (
+        directText.includes(
+            "subject"
+        ) ||
+        directText.includes(
+            "mail_subject"
+        ) ||
+        directText.includes(
+            "mail-subject"
+        ) ||
+        directText.includes(
+            "topic"
+        ) ||
+        directText.includes(
+            "tema"
+        ) ||
+        directText.includes(
+            "тема письма"
+        ) ||
+        directText.includes(
+            "тема сообщения"
+        ) ||
+        directText.includes(
+            "тема обращения"
+        ) ||
+        directText.trim() ===
+        "тема"
+    ) {
+        return "subject";
     }
 
     if (
@@ -277,10 +316,16 @@ export const getFieldMetadata =
                         .callback,
                         .feedback,
 
+                        .fancybox-container,
+                        .fancybox-content,
+                        .fancybox-slide,
+
                         [class*="modal"],
                         [class*="popup"],
                         [class*="dialog"],
-                        [class*="callback"]
+                        [class*="callback"],
+                        [class*="feedback"],
+                        [class*="fancybox"]
                     `);
 
                 return {
@@ -560,21 +605,263 @@ export const findBestFieldGroupAnywhere =
         return candidates[0];
     };
 
+    export const findFieldGroupByFormIndex =
+    async (
+        page,
+        formIndex
+    ) => {
+        const index =
+            Number(
+                formIndex
+            );
+
+        if (
+            !Number.isInteger(
+                index
+            ) ||
+            index < 0
+        ) {
+            return null;
+        }
+
+        try {
+            const forms =
+                page.locator(
+                    "form"
+                );
+
+            const formsCount =
+                await forms.count();
+
+            if (
+                index >=
+                formsCount
+            ) {
+                return null;
+            }
+
+            const form =
+                forms.nth(
+                    index
+                );
+
+            if (
+                !(
+                    await form
+                        .isVisible()
+                        .catch(
+                            () => false
+                        )
+                )
+            ) {
+                return null;
+            }
+
+            const fields =
+                form.locator(`
+                    input,
+                    textarea,
+                    select,
+                    [contenteditable="true"]
+                `);
+
+            const count =
+                await fields.count();
+
+            if (!count) {
+                return null;
+            }
+
+            const candidateFields =
+                [];
+
+            for (
+                let index = 0;
+                index < count;
+                index++
+            ) {
+                const field =
+                    fields.nth(
+                        index
+                    );
+
+                try {
+                    if (
+                        !(
+                            await field
+                                .isVisible()
+                                .catch(
+                                    () => false
+                                )
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    const metadata =
+                        await getFieldMetadata(
+                            field
+                        );
+
+                    if (
+                        metadata.disabled ||
+                        metadata.readOnly
+                    ) {
+                        continue;
+                    }
+
+                    if (
+                        [
+                            "hidden",
+                            "submit",
+                            "button",
+                            "reset",
+                            "file",
+                        ].includes(
+                            (
+                                metadata.type ||
+                                ""
+                            ).toLowerCase()
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    candidateFields.push({
+                        field,
+
+                        metadata,
+
+                        detectedType:
+                            detectFieldType(
+                                metadata
+                            ),
+                    });
+                } catch {
+                    //
+                }
+            }
+
+            if (
+                !candidateFields
+                    .length
+            ) {
+                return null;
+            }
+
+            const types =
+                candidateFields.map(
+                    (
+                        item
+                    ) =>
+                        item.detectedType
+                );
+
+            let score =
+                100;
+
+            if (
+                types.includes(
+                    "phone"
+                )
+            ) {
+                score += 50;
+            }
+
+            if (
+                types.includes(
+                    "name"
+                )
+            ) {
+                score += 25;
+            }
+
+            if (
+                types.includes(
+                    "message"
+                )
+            ) {
+                score += 20;
+            }
+
+            if (
+                types.includes(
+                    "email"
+                )
+            ) {
+                score += 10;
+            }
+
+            const isModal =
+                candidateFields.some(
+                    (
+                        item
+                    ) =>
+                        item.metadata
+                            .inModal
+                );
+
+            return {
+                frame:
+                    page.mainFrame(),
+
+                frameUrl:
+                    page.url(),
+
+                fields:
+                    candidateFields,
+
+                score,
+
+                isModal,
+
+                /*
+                 * Сохраняем саму форму.
+                 * Она понадобится для
+                 * нормального screenshot.
+                 */
+                container:
+                    form,
+
+                fastPath:
+                    true,
+            };
+        } catch {
+            return null;
+        }
+    };
 
 export const waitForFieldGroup =
     async (
         page,
-        timeout = 8000
+        timeout = 3500
     ) => {
         const startedAt =
             Date.now();
+
+        let candidate =
+            await findBestFieldGroupAnywhere(
+                page
+            );
+
+        if (
+            candidate?.fields
+                ?.length
+        ) {
+            return candidate;
+        }
 
         while (
             Date.now() -
             startedAt <
             timeout
-            ) {
-            const candidate =
+        ) {
+
+            await page.waitForTimeout(
+                150
+            );
+
+            candidate =
                 await findBestFieldGroupAnywhere(
                     page
                 );
@@ -585,15 +872,189 @@ export const waitForFieldGroup =
             ) {
                 return candidate;
             }
-
-            await page.waitForTimeout(
-                500
-            );
         }
 
         return null;
     };
 
+    export const captureCandidateScreenshot =
+    async (
+        page,
+        candidate
+    ) => {
+        const fields =
+            candidate?.fields ||
+            [];
+
+        if (!fields.length) {
+            return null;
+        }
+
+        const preferred =
+            fields.find(
+                (
+                    item
+                ) =>
+                    item.detectedType ===
+                    "message"
+            ) ||
+            fields.find(
+                (
+                    item
+                ) =>
+                    item.detectedType ===
+                    "phone"
+            ) ||
+            fields.find(
+                (
+                    item
+                ) =>
+                    item.detectedType ===
+                    "name"
+            ) ||
+            fields[0];
+
+        const field =
+            preferred?.field;
+
+        if (!field) {
+            return null;
+        }
+
+        if (
+            candidate.container
+        ) {
+            try {
+                await candidate.container
+                    .scrollIntoViewIfNeeded();
+
+                const box =
+                    await candidate.container
+                        .boundingBox();
+
+                if (
+                    box &&
+                    box.width >= 120 &&
+                    box.height >= 80 &&
+                    box.width <= 1800 &&
+                    box.height <= 1800 &&
+                    (
+                        box.width *
+                        box.height
+                    ) <= 2500000
+                ) {
+                    return await candidate.container
+                        .screenshot({
+                            type:
+                                "png",
+
+                            animations:
+                                "disabled",
+                        });
+                }
+            } catch {
+                //
+            }
+        }
+
+        let handle =
+            null;
+
+        try {
+            handle =
+                await field.evaluateHandle(
+                    (
+                        element
+                    ) => {
+                        return (
+                            element.closest(`
+                                form,
+
+                                [role="dialog"],
+                                [aria-modal="true"],
+
+                                .modal,
+                                .popup,
+                                .dialog,
+                                .callback,
+                                .feedback,
+
+                                [class*="modal"],
+                                [class*="popup"],
+                                [class*="dialog"],
+                                [class*="callback"],
+                                [class*="feedback"]
+                            `) ||
+                            element.closest(
+                                "fieldset"
+                            ) ||
+                            element.parentElement
+                        );
+                    }
+                );
+
+            const container =
+                handle.asElement();
+
+            if (container) {
+                const box =
+                    await container
+                        .boundingBox();
+
+                if (
+                    box &&
+                    box.width >= 120 &&
+                    box.height >= 80 &&
+                    box.width <= 1800 &&
+                    box.height <= 1800 &&
+                    (
+                        box.width *
+                        box.height
+                    ) <= 2500000
+                ) {
+                    return await container
+                        .screenshot({
+                            type:
+                                "png",
+
+                            animations:
+                                "disabled",
+                        });
+                }
+            }
+        } catch {
+            //
+        } finally {
+            await handle
+                ?.dispose()
+                .catch(
+                    () => {}
+                );
+        }
+
+        try {
+            await field
+                .scrollIntoViewIfNeeded();
+
+            await page.waitForTimeout(
+                80
+            );
+
+            return await page
+                .screenshot({
+                    type:
+                        "png",
+
+                    fullPage:
+                        false,
+
+                    animations:
+                        "disabled",
+                });
+        } catch {
+            return null;
+        }
+    };
 
 export const prepareCandidateFields = (
     candidate

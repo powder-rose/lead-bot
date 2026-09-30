@@ -45,6 +45,7 @@ export const scanPageForms =
                             )
                             .trim();
 
+
                     const isVisible = (
                         element
                     ) => {
@@ -73,6 +74,191 @@ export const scanPageForms =
                         );
                     };
 
+
+                    /*
+                     * =================================
+                     * ИЩЕМ TRIGGER СКРЫТОЙ ФОРМЫ
+                     * =================================
+                     *
+                     * Например:
+                     *
+                     * <a data-src="#call">
+                     *   Оставить заявку
+                     * </a>
+                     *
+                     * <div id="call" style="display:none">
+                     *   <form>...</form>
+                     * </div>
+                     */
+                    const findPopupTrigger = (
+                        form
+                    ) => {
+                        let current =
+                            form.parentElement;
+
+
+                        /*
+                         * Поднимаемся от form вверх
+                         * и ищем ближайший контейнер
+                         * с id.
+                         */
+                        while (
+                            current &&
+                            current !==
+                            document.body
+                        ) {
+                            if (
+                                current.id
+                            ) {
+                                const target =
+                                    `#${CSS.escape(
+                                        current.id
+                                    )
+                                    }`;
+
+
+                                const selectors = [
+                                    `[data-src="${target}"]`,
+                                    `[data-target="${target}"]`,
+                                    `[data-modal="${target}"]`,
+                                    `[data-popup="${target}"]`,
+                                    `a[href="${target}"]`,
+                                ];
+
+
+                                for (
+                                    const selector of
+                                    selectors
+                                ) {
+                                    let trigger;
+
+
+                                    try {
+                                        trigger =
+                                            document
+                                                .querySelector(
+                                                    selector
+                                                );
+                                    } catch {
+                                        trigger =
+                                            null;
+                                    }
+
+
+                                    if (
+                                        !trigger
+                                    ) {
+                                        continue;
+                                    }
+
+
+                                    /*
+                                     * Не требуем обязательно
+                                     * видимость самого target.
+                                     *
+                                     * Trigger должен быть
+                                     * доступен пользователю.
+                                     */
+                                    if (
+                                        !isVisible(
+                                            trigger
+                                        )
+                                    ) {
+                                        continue;
+                                    }
+
+
+                                    let triggerSelector =
+                                        "";
+
+
+                                    if (
+                                        trigger.id
+                                    ) {
+                                        triggerSelector =
+                                            `#${CSS.escape(
+                                                trigger.id
+                                            )}`;
+                                    } else if (
+                                        trigger.hasAttribute(
+                                            "data-fancybox"
+                                        ) &&
+                                        trigger.getAttribute(
+                                            "data-src"
+                                        )
+                                    ) {
+                                        triggerSelector =
+                                            `[data-fancybox][data-src=${JSON.stringify(
+                                                trigger.getAttribute(
+                                                    "data-src"
+                                                )
+                                            )}]`;
+                                    } else if (
+                                        trigger.getAttribute(
+                                            "data-src"
+                                        )
+                                    ) {
+                                        triggerSelector =
+                                            `[data-src=${JSON.stringify(
+                                                trigger.getAttribute(
+                                                    "data-src"
+                                                )
+                                            )}]`;
+                                    }
+
+
+                                    return {
+                                        text:
+                                            clean(
+                                                trigger.textContent
+                                            ) ||
+                                            clean(
+                                                trigger.getAttribute(
+                                                    "value"
+                                                )
+                                            ) ||
+                                            clean(
+                                                trigger.getAttribute(
+                                                    "aria-label"
+                                                )
+                                            ) ||
+                                            "Открыть форму",
+
+                                        selector:
+                                            triggerSelector,
+
+                                        href:
+                                            trigger.getAttribute(
+                                                "href"
+                                            ) ||
+                                            "",
+
+                                        dataSrc:
+                                            trigger.getAttribute(
+                                                "data-src"
+                                            ) ||
+                                            target,
+
+                                        dataFancybox:
+                                            trigger.hasAttribute(
+                                                "data-fancybox"
+                                            ),
+
+                                        target,
+                                    };
+                                }
+                            }
+
+
+                            current =
+                                current.parentElement;
+                        }
+
+
+                        return null;
+                    };
+
+
                     return forms.map(
                         (
                             form,
@@ -93,6 +279,7 @@ export const scanPageForms =
                                         let label =
                                             "";
 
+
                                         if (
                                             field.id
                                         ) {
@@ -104,18 +291,21 @@ export const scanPageForms =
                                                         )}"]`
                                                     );
 
+
                                                 if (
                                                     labelElement
                                                 ) {
                                                     label =
                                                         clean(
-                                                            labelElement.textContent
+                                                            labelElement
+                                                                .textContent
                                                         );
                                                 }
                                             } catch {
                                                 //
                                             }
                                         }
+
 
                                         if (
                                             !label
@@ -125,15 +315,18 @@ export const scanPageForms =
                                                     "label"
                                                 );
 
+
                                             if (
                                                 parentLabel
                                             ) {
                                                 label =
                                                     clean(
-                                                        parentLabel.textContent
+                                                        parentLabel
+                                                            .textContent
                                                     );
                                             }
                                         }
+
 
                                         const wrapper =
                                             field.closest(`
@@ -149,6 +342,7 @@ export const scanPageForms =
                                                 [class*="control"]
                                             `) ||
                                             field.parentElement;
+
 
                                         return {
                                             fieldIndex,
@@ -167,36 +361,42 @@ export const scanPageForms =
                                             name:
                                                 field.getAttribute(
                                                     "name"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             id:
                                                 field.getAttribute(
                                                     "id"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             placeholder:
                                                 field.getAttribute(
                                                     "placeholder"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             ariaLabel:
                                                 field.getAttribute(
                                                     "aria-label"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             autocomplete:
                                                 field.getAttribute(
                                                     "autocomplete"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             inputMode:
                                                 field.getAttribute(
                                                     "inputmode"
-                                                ) || "",
+                                                ) ||
+                                                "",
 
                                             className:
                                                 typeof field.className ===
-                                                "string"
+                                                    "string"
                                                     ? field.className
                                                     : "",
 
@@ -205,7 +405,8 @@ export const scanPageForms =
                                             surroundingText:
                                                 wrapper
                                                     ? clean(
-                                                        wrapper.textContent
+                                                        wrapper
+                                                            .textContent
                                                     ).slice(
                                                         0,
                                                         250
@@ -218,6 +419,7 @@ export const scanPageForms =
                                         };
                                     }
                                 );
+
 
                             const buttons =
                                 Array.from(
@@ -237,7 +439,8 @@ export const scanPageForms =
                                         type:
                                             button.getAttribute(
                                                 "type"
-                                            ) || "",
+                                            ) ||
+                                            "",
 
                                         text:
                                             clean(
@@ -254,36 +457,108 @@ export const scanPageForms =
                                     })
                                 );
 
+
+                            const actuallyVisible =
+                                isVisible(
+                                    form
+                                );
+
+
+                            /*
+                             * Если форма скрыта,
+                             * проверяем, есть ли
+                             * доступная пользователю
+                             * кнопка открытия.
+                             */
+                            const popupTrigger =
+                                actuallyVisible
+                                    ? null
+                                    : findPopupTrigger(
+                                        form
+                                    );
+
+
                             return {
                                 formIndex,
 
                                 sourceFormIndex:
-                                formIndex,
+                                    formIndex,
 
                                 pageUrl:
-                                meta.pageUrl,
+                                    meta.pageUrl,
 
                                 pageTitle:
-                                meta.pageTitle,
+                                    meta.pageTitle,
 
                                 action:
                                     form.getAttribute(
                                         "action"
-                                    ) || "",
+                                    ) ||
+                                    "",
 
                                 method:
                                     form.getAttribute(
                                         "method"
-                                    ) || "get",
+                                    ) ||
+                                    "get",
 
+
+                                /*
+                                 * КЛЮЧЕВОЕ ИЗМЕНЕНИЕ.
+                                 *
+                                 * Если форма скрыта,
+                                 * но на неё ведёт
+                                 * видимый popup trigger,
+                                 * считаем её доступной.
+                                 */
                                 visible:
-                                    isVisible(
-                                        form
+                                    actuallyVisible ||
+                                    Boolean(
+                                        popupTrigger
                                     ),
 
                                 fields,
 
                                 buttons,
+
+
+                                /*
+                                 * Помечаем источник.
+                                 */
+                                source:
+                                    popupTrigger
+                                        ? "inline-popup"
+                                        : "page",
+
+                                inlineTarget:
+                                    popupTrigger
+                                        ?.target ||
+                                    null,
+
+                                trigger:
+                                    popupTrigger
+                                        ? {
+                                            text:
+                                                popupTrigger
+                                                    .text,
+
+                                            selector:
+                                                popupTrigger
+                                                    .selector,
+
+                                            href:
+                                                popupTrigger
+                                                    .href,
+
+                                            dataSrc:
+                                                popupTrigger
+                                                    .dataSrc,
+
+                                            dataFancybox:
+                                                popupTrigger
+                                                    .dataFancybox,
+                                        }
+                                        : null,
                             };
                         }
                     );
@@ -370,6 +645,11 @@ export const analyzeForm = (
             "email"
         );
 
+    const hasSubject =
+    types.includes(
+        "subject"
+    );
+
     const hasMessage =
         types.includes(
             "message"
@@ -420,6 +700,10 @@ export const analyzeForm = (
 
     if (hasEmail) {
         score += 5;
+    }
+
+    if (hasSubject) {
+        score += 8;
     }
 
     if (
@@ -542,6 +826,9 @@ export const analyzeForm = (
 
             email:
             hasEmail,
+
+            subject:
+            hasSubject,
 
             message:
             hasMessage,
@@ -757,107 +1044,22 @@ export const findCandidateLinks =
 
 export const findFormTriggers =
     async (page) => {
-        await page.waitForTimeout(
-            2000
-        );
-
-        /*
-         * Ждём появления хотя бы DOM.
-         */
         await page
             .waitForSelector(
                 "body",
                 {
                     timeout:
-                        5000,
+                        3000,
                 }
             )
             .catch(
                 () => {}
             );
+        await page.waitForTimeout(
+            250
+        )
 
-
-        /*
-         * Для диагностики.
-         * Сразу увидим, есть ли текст
-         * в DOM Playwright.
-         */
-        const debug =
-            await page.evaluate(
-                () => {
-                    const bodyText =
-                        (
-                            document.body
-                                ?.innerText ||
-                            ""
-                        )
-                            .replace(
-                                /\s+/g,
-                                " "
-                            )
-                            .trim();
-
-                    const dataH =
-                        [
-                            ...document.querySelectorAll(
-                                "[data-h]"
-                            ),
-                        ]
-                            .slice(
-                                0,
-                                30
-                            )
-                            .map(
-                                (
-                                    element
-                                ) => ({
-                                    tag:
-                                        element.tagName
-                                            .toLowerCase(),
-
-                                    text:
-                                        (
-                                            element.textContent ||
-                                            ""
-                                        )
-                                            .replace(
-                                                /\s+/g,
-                                                " "
-                                            )
-                                            .trim()
-                                            .slice(
-                                                0,
-                                                120
-                                            ),
-
-                                    dataH:
-                                        element.getAttribute(
-                                            "data-h"
-                                        ),
-                                })
-                            );
-
-                    return {
-                        hasCallbackText:
-                            bodyText
-                                .toLowerCase()
-                                .includes(
-                                    "обратный звонок"
-                                ),
-
-                        hasApplicationText:
-                            bodyText
-                                .toLowerCase()
-                                .includes(
-                                    "оставить заявку"
-                                ),
-
-                        dataH,
-                    };
-                }
-            );
-
-
+        
         const candidates =
             [];
 
@@ -872,13 +1074,28 @@ export const findFormTriggers =
             page.locator(`
                 button,
                 a,
+
+                input[type="button"],
+                input[type="submit"],
+
                 [role="button"],
                 [onclick],
+
+                [data-fancybox],
+                [data-src],
+
                 [data-h],
                 [data-modal],
                 [data-popup],
                 [data-target],
-                [data-toggle]
+                [data-toggle],
+
+                [class*="button"],
+                [class*="btn"],
+                [class*="callback"],
+                [class*="feedback"],
+                [class*="request"],
+                [class*="order"]
             `);
 
 
@@ -946,10 +1163,29 @@ export const findFormTriggers =
 
                                 href,
 
+                                dataSrc:
+                                    clean(
+                                        element.getAttribute(
+                                            "data-src"
+                                        )
+                                    ),
+
+                                dataFancybox:
+                                    element.hasAttribute(
+                                        "data-fancybox"
+                                    ),
+
                                 text:
                                     clean(
                                         element.textContent
                                     ),
+
+                                value:
+                                    clean(
+                                        element.getAttribute(
+                                            "value"
+                                        )
+    ),
 
                                 ariaLabel:
                                     clean(
@@ -969,6 +1205,19 @@ export const findFormTriggers =
                                     clean(
                                         element.getAttribute(
                                             "data-h"
+                                        )
+                                    ),
+
+                                className:
+                                    typeof element.className ===
+                                        "string"
+                                        ? element.className
+                                        : "",
+
+                                onclick:
+                                    clean(
+                                        element.getAttribute(
+                                            "onclick"
                                         )
                                     ),
 
@@ -1008,9 +1257,7 @@ export const findFormTriggers =
 
                 if (
                     info.inForm ||
-                    info.disabled ||
-                    info.type ===
-                    "submit"
+                    info.disabled
                 ) {
                     continue;
                 }
@@ -1022,9 +1269,6 @@ export const findFormTriggers =
                     ) ||
                     info.href.startsWith(
                         "mailto:"
-                    ) ||
-                    info.href.startsWith(
-                        "javascript:"
                     )
                 ) {
                     continue;
@@ -1054,9 +1298,13 @@ export const findFormTriggers =
                 const searchableText =
                     [
                         info.text,
+                        info.value,
                         info.ariaLabel,
                         info.title,
                         info.dataH,
+                        info.id,
+                        info.className,
+                        info.onclick,
                     ]
                         .filter(
                             Boolean
@@ -1121,6 +1369,18 @@ export const findFormTriggers =
                     score += 20;
                 }
 
+                if (
+                    info.tag ===
+                    "input" &&
+                    (
+                        info.type ===
+                        "button" ||
+                        info.type ===
+                        "submit"
+                    )
+                ) {
+                    score += 30;
+                }
 
                 if (
                     info.dataH
@@ -1128,6 +1388,15 @@ export const findFormTriggers =
                     score += 40;
                 }
 
+                if (
+                    info.dataFancybox &&
+                    info.dataSrc
+                        ?.startsWith(
+                            "#"
+                        )
+                ) {
+                    score += 100;
+                }
 
                 let selector =
                     "";
@@ -1142,11 +1411,17 @@ export const findFormTriggers =
                         )}`;
                 }
 
+                if (
+                    !selector &&
+                    info.dataFancybox &&
+                    info.dataSrc
+                ) {
+                    selector =
+                        `[data-fancybox][data-src=${JSON.stringify(
+                            info.dataSrc
+                        )}]`;
+                }
 
-                /*
-                 * Для firecontrol.su
-                 * data-h особенно полезен.
-                 */
                 if (
                     !selector &&
                     info.dataH
@@ -1161,6 +1436,9 @@ export const findFormTriggers =
                 candidates.push({
                     text:
                         info.text ||
+                        info.value ||
+                        info.ariaLabel ||
+                        info.title ||
                         info.dataH ||
                         matchedKeyword,
 
@@ -1174,6 +1452,12 @@ export const findFormTriggers =
 
                     href:
                     info.href,
+
+                    dataSrc:
+                    info.dataSrc,
+
+                    dataFancybox:
+                    info.dataFancybox,
 
                     dataH:
                     info.dataH,
@@ -1269,16 +1553,19 @@ export const findFormTriggers =
                                         [data-modal],
                                         [data-popup],
                                         [data-target],
-                                        [data-toggle]
-                                    `);
+                                        [data-toggle],
 
+                                        .btn,
+                                        .button,
 
-                                if (
-                                    !clickable
-                                ) {
-                                    return null;
-                                }
-
+                                        [class*="btn"],
+                                        [class*="button"],
+                                        [class*="callback"],
+                                        [class*="feedback"],
+                                        [class*="request"],
+                                        [class*="order"]
+                                    `) ||
+                                    element;
 
                                 if (
                                     clickable.closest(
@@ -1485,41 +1772,77 @@ export const findFormTriggers =
 
 const getInteractionState =
     async (page) => {
+        let visibleFields =
+            0;
+
+        let visibleDialogs =
+            0;
+
+        const frames =
+            page.frames();
+
+        for (
+            const frame of
+            frames
+        ) {
+            try {
+                visibleFields +=
+                    await frame
+                        .locator(`
+                            input:visible,
+                            textarea:visible,
+                            select:visible,
+                            [contenteditable="true"]:visible
+                        `)
+                        .count()
+                        .catch(
+                            () => 0
+                        );
+
+
+                visibleDialogs +=
+                    await frame
+                        .locator(`
+                            [role="dialog"]:visible,
+                            [aria-modal="true"]:visible,
+
+                            .modal:visible,
+                            .popup:visible,
+                            .dialog:visible,
+                            .callback:visible,
+                            .feedback:visible,
+
+                            [class*="modal"]:visible,
+                            [class*="popup"]:visible,
+                            [class*="dialog"]:visible,
+                            [class*="callback"]:visible,
+                            [class*="feedback"]:visible
+                        `)
+                        .count()
+                        .catch(
+                            () => 0
+                        );
+            } catch {
+                //
+            }
+        }
+
+
         return {
             url:
                 page.url(),
 
-            visibleFields:
-                await page
-                    .locator(`
-                        input:visible,
-                        textarea:visible,
-                        select:visible
-                    `)
-                    .count()
-                    .catch(
-                        () => 0
-                    ),
+            visibleFields,
 
-            visibleDialogs:
-                await page
-                    .locator(`
-                        [role="dialog"]:visible,
-                        [aria-modal="true"]:visible,
-                        .modal:visible,
-                        .popup:visible,
-                        [class*="modal"]:visible,
-                        [class*="popup"]:visible
-                    `)
-                    .count()
-                    .catch(
-                        () => 0
-                    ),
+            visibleDialogs,
+
+            framesCount:
+                frames.length,
 
             pagesCount:
-            page.context()
-                .pages()
-                .length,
+                page.context()
+                    .pages()
+                    .length,
         };
     };
 
@@ -1530,91 +1853,300 @@ const clickAndVerifyTrigger =
         locator
     ) => {
         try {
-            if (
-                !(
-                    await locator.isVisible()
-                )
-            ) {
+            const visible =
+                await locator
+                    .isVisible()
+                    .catch(
+                        () => false
+                    );
+
+            if (!visible) {
                 return false;
             }
 
-            const safe =
-                await locator.evaluate(
-                    (
-                        element
-                    ) => {
-                        if (
-                            element.closest(
-                                "form"
-                            )
-                        ) {
-                            return false;
-                        }
 
-                        return (
-                            (
-                                element.getAttribute(
-                                    "type"
-                                ) ||
-                                ""
-                            ).toLowerCase() !==
-                            "submit"
-                        );
-                    }
-                );
+            const safe =
+                await locator
+                    .evaluate(
+                        (
+                            element
+                        ) => {
+                            if (
+                                element.closest(
+                                    "form"
+                                )
+                            ) {
+                                return false;
+                            }
+
+                            return true;
+                        }
+                    )
+                    .catch(
+                        () => false
+                    );
+
 
             if (!safe) {
                 return false;
             }
 
+
             const before =
                 await getInteractionState(
                     page
                 );
+            let clicked =
+                false;
 
-            await locator
-                .click({
+
+            try {
+                await locator.click({
                     timeout:
-                        4000,
-                })
-                .catch(
-                    async () =>
-                        locator.click({
-                            force:
-                                true,
+                        2500,
+                });
 
-                            timeout:
-                                3000,
-                        })
+                clicked =
+                    true;
+            } catch {
+                try {
+                    await locator.click({
+                        force:
+                            true,
+
+                        timeout:
+                            1500,
+                    });
+
+                    clicked =
+                        true;
+                } catch {
+                    //
+                }
+            }
+
+
+            if (!clicked) {
+                return false;
+            }
+
+            for (
+                let attempt = 0;
+                attempt < 15;
+                attempt++
+            ) {
+                await page.waitForTimeout(
+                    120
                 );
 
-            await page.waitForTimeout(
-                1200
-            );
 
-            const after =
-                await getInteractionState(
-                    page
-                );
+                const after =
+                    await getInteractionState(
+                        page
+                    );
 
-            return (
-                after.pagesCount >
-                before.pagesCount ||
 
-                after.visibleFields >
-                before.visibleFields ||
+                const changed =
+                    (
+                        after.pagesCount >
+                        before.pagesCount ||
 
-                after.visibleDialogs >
-                before.visibleDialogs ||
+                        after.visibleFields >
+                        before.visibleFields ||
 
-                after.url !==
-                before.url
-            );
+                        after.visibleDialogs >
+                        before.visibleDialogs ||
+
+                        after.url !==
+                        before.url
+                    );
+
+
+                if (changed) {
+                    return true;
+                }
+            }
+
+
+            return false;
         } catch {
             return false;
         }
     };
 
+const clickAndVerifyFancyboxTrigger =
+    async (
+        page,
+        locator,
+        targetSelector
+    ) => {
+        try {
+            if (
+                !(
+                    await locator
+                        .isVisible()
+                        .catch(
+                            () => false
+                        )
+                )
+            ) {
+                return false;
+            }
+
+
+            const target =
+                targetSelector
+                    ? page.locator(
+                        targetSelector
+                    )
+                    : null;
+
+
+            const targetWasVisible =
+                target
+                    ? await target
+                        .isVisible()
+                        .catch(
+                            () => false
+                        )
+                    : false;
+
+
+            const fancyboxBefore =
+                await page
+                    .locator(`
+                        .fancybox-container:visible,
+                        .fancybox-content:visible,
+                        .fancybox-slide:visible
+                    `)
+                    .count()
+                    .catch(
+                        () => 0
+                    );
+
+
+            /*
+             * Нормальный пользовательский click.
+             */
+            try {
+                await locator.click({
+                    timeout:
+                        3000,
+                });
+            } catch {
+                /*
+                 * На случай overlay.
+                 */
+                try {
+                    await locator.click({
+                        force:
+                            true,
+
+                        timeout:
+                            2000,
+                    });
+                } catch {
+                    return false;
+                }
+            }
+
+
+            /*
+             * Fancybox обычно появляется
+             * очень быстро.
+             */
+            for (
+                let attempt = 0;
+                attempt < 20;
+                attempt++
+            ) {
+                await page.waitForTimeout(
+                    100
+                );
+
+
+                /*
+                 * Вариант №1:
+                 * сам #call стал видимым.
+                 */
+                if (target) {
+                    const targetVisible =
+                        await target
+                            .isVisible()
+                            .catch(
+                                () => false
+                            );
+
+                    if (
+                        targetVisible &&
+                        !targetWasVisible
+                    ) {
+                        return true;
+                    }
+                }
+
+
+                /*
+                 * Вариант №2:
+                 * Fancybox создал свой
+                 * контейнер.
+                 */
+                const fancyboxAfter =
+                    await page
+                        .locator(`
+                            .fancybox-container:visible,
+                            .fancybox-content:visible,
+                            .fancybox-slide:visible
+                        `)
+                        .count()
+                        .catch(
+                            () => 0
+                        );
+
+
+                if (
+                    fancyboxAfter >
+                    fancyboxBefore
+                ) {
+                    return true;
+                }
+
+
+                /*
+                 * Вариант №3:
+                 * в Fancybox появились поля.
+                 */
+                const fancyboxFields =
+                    await page
+                        .locator(`
+                            .fancybox-container:visible input:visible,
+                            .fancybox-container:visible textarea:visible,
+                            .fancybox-container:visible select:visible,
+
+                            .fancybox-content:visible input:visible,
+                            .fancybox-content:visible textarea:visible,
+                            .fancybox-content:visible select:visible
+                        `)
+                        .count()
+                        .catch(
+                            () => 0
+                        );
+
+
+                if (
+                    fancyboxFields >
+                    0
+                ) {
+                    return true;
+                }
+            }
+
+
+            return false;
+        } catch {
+            return false;
+        }
+    };
 
 export const openFormTrigger =
     async (
@@ -1629,6 +2161,54 @@ export const openFormTrigger =
             );
 
         if (
+            trigger?.dataFancybox &&
+            trigger?.dataSrc
+                ?.startsWith(
+                    "#"
+                )
+        ) {
+            const fancyboxTrigger =
+                page
+                    .locator(
+                        `[data-fancybox][data-src=${JSON.stringify(
+                            trigger.dataSrc
+                        )}]`
+                    )
+                    .filter({
+                        hasText:
+                            text ||
+                            undefined,
+                    })
+                    .first();
+
+
+            if (
+                await fancyboxTrigger
+                    .count()
+                    .catch(
+                        () => 0
+                    )
+            ) {
+                const opened =
+                    await clickAndVerifyFancyboxTrigger(
+                        page,
+                        fancyboxTrigger,
+                        trigger.dataSrc
+                    );
+
+
+                if (opened) {
+                    return true;
+                }
+            }
+        }
+
+        /*
+         * =====================================
+         * 1. ТОЧНЫЙ CSS SELECTOR
+         * =====================================
+         */
+        if (
             trigger?.selector
         ) {
             const locator =
@@ -1638,58 +2218,136 @@ export const openFormTrigger =
                     )
                     .first();
 
+
             if (
                 await clickAndVerifyTrigger(
                     page,
                     locator
                 )
             ) {
-
                 return true;
             }
         }
 
-        for (
-            const role of
-            [
-                "button",
-                "link",
-            ]
+
+        /*
+         * =====================================
+         * 2. ACCESSIBILITY ROLE
+         * =====================================
+         */
+        if (text) {
+            for (
+                const role of
+                [
+                    "button",
+                    "link",
+                ]
             ) {
-            if (!text) {
-                continue;
-            }
+                const locator =
+                    page.getByRole(
+                        role,
+                        {
+                            name:
+                                text,
 
-            const locator =
-                page.getByRole(
-                    role,
-                    {
-                        name:
-                        text,
+                            exact:
+                                false,
+                        }
+                    );
 
-                        exact:
-                            false,
+
+                const count =
+                    await locator.count();
+
+
+                for (
+                    let index = 0;
+                    index <
+                    Math.min(
+                        count,
+                        8
+                    );
+                    index++
+                ) {
+                    if (
+                        await clickAndVerifyTrigger(
+                            page,
+                            locator.nth(
+                                index
+                            )
+                        )
+                    ) {
+                        return true;
                     }
-                );
+                }
+            }
+        }
+
+
+        /*
+         * =====================================
+         * 3. INPUT VALUE
+         * =====================================
+         *
+         * getByText не видит:
+         *
+         * <input value="Оставить заявку">
+         */
+        if (text) {
+            const inputs =
+                page.locator(`
+                    input[type="button"],
+                    input[type="submit"]
+                `);
+
 
             const count =
-                await locator.count();
+                await inputs.count();
+
 
             for (
                 let index = 0;
                 index <
                 Math.min(
                     count,
-                    6
+                    20
                 );
                 index++
             ) {
+                const input =
+                    inputs.nth(
+                        index
+                    );
+
+
+                const value =
+                    normalizeText(
+                        await input
+                            .getAttribute(
+                                "value"
+                            )
+                            .catch(
+                                () => ""
+                            )
+                    );
+
+
+                if (
+                    !value ||
+                    !value
+                        .toLowerCase()
+                        .includes(
+                            text.toLowerCase()
+                        )
+                ) {
+                    continue;
+                }
+
+
                 if (
                     await clickAndVerifyTrigger(
                         page,
-                        locator.nth(
-                            index
-                        )
+                        input
                     )
                 ) {
                     return true;
@@ -1697,6 +2355,12 @@ export const openFormTrigger =
             }
         }
 
+
+        /*
+         * =====================================
+         * 4. ТОЧНЫЙ ТЕКСТ
+         * =====================================
+         */
         if (text) {
             const locator =
                 page.getByText(
@@ -1707,15 +2371,17 @@ export const openFormTrigger =
                     }
                 );
 
+
             const count =
                 await locator.count();
+
 
             for (
                 let index = 0;
                 index <
                 Math.min(
                     count,
-                    8
+                    10
                 );
                 index++
             ) {
@@ -1731,6 +2397,56 @@ export const openFormTrigger =
                 }
             }
         }
+
+
+        /*
+         * =====================================
+         * 5. НЕТОЧНОЕ СОВПАДЕНИЕ
+         * =====================================
+         *
+         * Для вложенных span/div:
+         *
+         * <div class="callback">
+         *   <span>Оставить заявку</span>
+         * </div>
+         */
+        if (text) {
+            const locator =
+                page.getByText(
+                    text,
+                    {
+                        exact:
+                            false,
+                    }
+                );
+
+
+            const count =
+                await locator.count();
+
+
+            for (
+                let index = 0;
+                index <
+                Math.min(
+                    count,
+                    15
+                );
+                index++
+            ) {
+                if (
+                    await clickAndVerifyTrigger(
+                        page,
+                        locator.nth(
+                            index
+                        )
+                    )
+                ) {
+                    return true;
+                }
+            }
+        }
+
 
         return false;
     };
@@ -2088,19 +2804,689 @@ const scanVisibleFields =
         return result;
     };
 
+export const scanInlinePopupForms =
+    async (page) => {
+        const pageUrl =
+            page.url();
+
+        const pageTitle =
+            await page.title();
+
+
+        return page.evaluate(
+            (
+                {
+                    pageUrl,
+                    pageTitle,
+                    keywords,
+                }
+            ) => {
+                const clean = (
+                    value
+                ) =>
+                    String(
+                        value || ""
+                    )
+                        .replace(
+                            /\s+/g,
+                            " "
+                        )
+                        .trim();
+
+
+                const allPageForms =
+                    [
+                        ...document.querySelectorAll(
+                            "form"
+                        ),
+                    ];
+
+
+                const createField =
+                    (
+                        field,
+                        fieldIndex
+                    ) => {
+                        let label =
+                            "";
+
+
+                        if (field.id) {
+                            try {
+                                const labelElement =
+                                    document.querySelector(
+                                        `label[for="${CSS.escape(
+                                            field.id
+                                        )}"]`
+                                    );
+
+
+                                if (labelElement) {
+                                    label =
+                                        clean(
+                                            labelElement
+                                                .textContent
+                                        );
+                                }
+                            } catch {
+                                //
+                            }
+                        }
+
+
+                        if (!label) {
+                            const parentLabel =
+                                field.closest(
+                                    "label"
+                                );
+
+
+                            if (parentLabel) {
+                                label =
+                                    clean(
+                                        parentLabel
+                                            .textContent
+                                    );
+                            }
+                        }
+
+
+                        const wrapper =
+                            field.closest(`
+                                .field,
+                                .form-field,
+                                .input,
+                                .input-group,
+                                .form-group,
+                                .control,
+
+                                [class*="field"],
+                                [class*="input"],
+                                [class*="control"]
+                            `) ||
+                            field.parentElement;
+
+
+                        return {
+                            fieldIndex,
+
+                            tag:
+                                field.tagName
+                                    .toLowerCase(),
+
+                            type:
+                                field.getAttribute(
+                                    "type"
+                                ) ||
+                                field.tagName
+                                    .toLowerCase(),
+
+                            name:
+                                field.getAttribute(
+                                    "name"
+                                ) || "",
+
+                            id:
+                                field.getAttribute(
+                                    "id"
+                                ) || "",
+
+                            placeholder:
+                                field.getAttribute(
+                                    "placeholder"
+                                ) || "",
+
+                            ariaLabel:
+                                field.getAttribute(
+                                    "aria-label"
+                                ) || "",
+
+                            autocomplete:
+                                field.getAttribute(
+                                    "autocomplete"
+                                ) || "",
+
+                            inputMode:
+                                field.getAttribute(
+                                    "inputmode"
+                                ) || "",
+
+                            className:
+                                typeof field.className ===
+                                "string"
+                                    ? field.className
+                                    : "",
+
+                            label,
+
+                            surroundingText:
+                                wrapper
+                                    ? clean(
+                                        wrapper
+                                            .textContent
+                                    ).slice(
+                                        0,
+                                        250
+                                    )
+                                    : "",
+
+                            required:
+                                field.required ===
+                                true,
+                        };
+                    };
+
+
+                const createButtons =
+                    (form) =>
+                        [
+                            ...form.querySelectorAll(`
+                                button,
+                                input[type="submit"],
+                                input[type="button"]
+                            `),
+                        ].map(
+                            (
+                                button
+                            ) => ({
+                                tag:
+                                    button.tagName
+                                        .toLowerCase(),
+
+                                type:
+                                    button.getAttribute(
+                                        "type"
+                                    ) || "",
+
+                                text:
+                                    clean(
+                                        button.textContent
+                                    ) ||
+                                    clean(
+                                        button.getAttribute(
+                                            "value"
+                                        )
+                                    ),
+
+                                disabled:
+                                    button.disabled ===
+                                    true,
+                            })
+                        );
+
+
+                const triggers =
+                    [
+                        ...document.querySelectorAll(`
+                            [data-src^="#"],
+                            [data-target^="#"],
+                            [data-modal^="#"],
+                            [data-popup^="#"]
+                        `),
+                    ];
+
+
+                const results =
+                    [];
+
+
+                for (
+                    const trigger of
+                    dynamicTriggers
+                ) {
+                    const triggerText =
+                        clean(
+                            trigger.textContent
+                        ) ||
+                        clean(
+                            trigger.getAttribute(
+                                "value"
+                            )
+                        ) ||
+                        clean(
+                            trigger.getAttribute(
+                                "aria-label"
+                            )
+                        );
+
+
+                    const searchable =
+                        [
+                            triggerText,
+
+                            trigger.getAttribute(
+                                "title"
+                            ),
+
+                            trigger.getAttribute(
+                                "class"
+                            ),
+
+                            trigger.getAttribute(
+                                "data-src"
+                            ),
+
+                            trigger.getAttribute(
+                                "data-target"
+                            ),
+                        ]
+                            .filter(
+                                Boolean
+                            )
+                            .join(
+                                " "
+                            )
+                            .toLowerCase();
+
+
+                    /*
+                     * Не берём любой #target.
+                     *
+                     * CTA должен быть похож
+                     * именно на заявку /
+                     * обратную связь.
+                     */
+                    const matchedKeyword =
+                        keywords.find(
+                            (
+                                keyword
+                            ) =>
+                                searchable.includes(
+                                    keyword
+                                )
+                        );
+
+
+                    if (!matchedKeyword) {
+                        continue;
+                    }
+
+
+                    const targetSelector =
+                        trigger.getAttribute(
+                            "data-src"
+                        ) ||
+                        trigger.getAttribute(
+                            "data-target"
+                        ) ||
+                        trigger.getAttribute(
+                            "data-modal"
+                        ) ||
+                        trigger.getAttribute(
+                            "data-popup"
+                        );
+
+
+                    if (
+                        !targetSelector ||
+                        !targetSelector
+                            .startsWith(
+                                "#"
+                            )
+                    ) {
+                        continue;
+                    }
+
+
+                    let target;
+
+
+                    try {
+                        target =
+                            document.querySelector(
+                                targetSelector
+                            );
+                    } catch {
+                        continue;
+                    }
+
+
+                    if (!target) {
+                        continue;
+                    }
+
+
+                    /*
+                     * Точный selector trigger.
+                     */
+                    let triggerSelector =
+                        "";
+
+
+                    if (trigger.id) {
+                        triggerSelector =
+                            `#${CSS.escape(
+                                trigger.id
+                            )}`;
+                    } else if (
+                        trigger.hasAttribute(
+                            "data-fancybox"
+                        )
+                    ) {
+                        triggerSelector =
+                            `[data-fancybox][data-src=${JSON.stringify(
+                                targetSelector
+                            )}]`;
+                    } else {
+                        triggerSelector =
+                            `[data-src=${JSON.stringify(
+                                targetSelector
+                            )}]`;
+                    }
+
+
+                    /*
+                     * =================================
+                     * НАСТОЯЩИЕ <form>
+                     * =================================
+                     */
+
+                    const targetForms =
+                        target.matches(
+                            "form"
+                        )
+                            ? [
+                                target,
+                            ]
+                            : [
+                                ...target.querySelectorAll(
+                                    "form"
+                                ),
+                            ];
+
+
+                    for (
+                        const form of
+                        targetForms
+                    ) {
+                        const sourceFormIndex =
+                            allPageForms.indexOf(
+                                form
+                            );
+
+
+                        const fields =
+                            [
+                                ...form.querySelectorAll(`
+                                    input,
+                                    textarea,
+                                    select
+                                `),
+                            ].map(
+                                (
+                                    field,
+                                    fieldIndex
+                                ) =>
+                                    createField(
+                                        field,
+                                        fieldIndex
+                                    )
+                            );
+
+
+                        if (!fields.length) {
+                            continue;
+                        }
+
+
+                        results.push({
+                            formIndex:
+                                sourceFormIndex,
+
+                            sourceFormIndex,
+
+                            pageUrl,
+
+                            pageTitle,
+
+                            action:
+                                form.getAttribute(
+                                    "action"
+                                ) || "",
+
+                            method:
+                                form.getAttribute(
+                                    "method"
+                                ) || "get",
+
+                            /*
+                             * В DOM форма скрыта,
+                             * но это нормально:
+                             * trigger предназначен
+                             * именно для её открытия.
+                             */
+                            visible:
+                                true,
+
+                            fields,
+
+                            buttons:
+                                createButtons(
+                                    form
+                                ),
+
+                            source:
+                                "inline-popup",
+
+                            synthetic:
+                                false,
+
+                            inlineTarget:
+                                targetSelector,
+
+                            trigger: {
+                                text:
+                                    triggerText ||
+                                    matchedKeyword,
+
+                                keyword:
+                                    matchedKeyword,
+
+                                selector:
+                                    triggerSelector,
+
+                                href:
+                                    trigger.getAttribute(
+                                        "href"
+                                    ) || "",
+
+                                dataSrc:
+                                    targetSelector,
+
+                                dataFancybox:
+                                    trigger.hasAttribute(
+                                        "data-fancybox"
+                                    ),
+                            },
+                        });
+                    }
+
+
+                    /*
+                     * =================================
+                     * POPUP БЕЗ <form>
+                     * =================================
+                     *
+                     * Иногда внутри #target лежат
+                     * просто input'ы.
+                     */
+
+                    if (!targetForms.length) {
+                        const rawFields =
+                            [
+                                ...target.querySelectorAll(`
+                                    input,
+                                    textarea,
+                                    select
+                                `),
+                            ];
+
+
+                        if (
+                            rawFields.length
+                        ) {
+                            results.push({
+                                formIndex:
+                                    -1,
+
+                                sourceFormIndex:
+                                    null,
+
+                                pageUrl,
+
+                                pageTitle,
+
+                                action:
+                                    "",
+
+                                method:
+                                    "unknown",
+
+                                visible:
+                                    true,
+
+                                fields:
+                                    rawFields.map(
+                                        (
+                                            field,
+                                            fieldIndex
+                                        ) =>
+                                            createField(
+                                                field,
+                                                fieldIndex
+                                            )
+                                    ),
+
+                                buttons:
+                                    [],
+
+                                source:
+                                    "inline-popup",
+
+                                synthetic:
+                                    true,
+
+                                inlineTarget:
+                                    targetSelector,
+
+                                trigger: {
+                                    text:
+                                        triggerText ||
+                                        matchedKeyword,
+
+                                    keyword:
+                                        matchedKeyword,
+
+                                    selector:
+                                        triggerSelector,
+
+                                    href:
+                                        trigger.getAttribute(
+                                            "href"
+                                        ) || "",
+
+                                    dataSrc:
+                                        targetSelector,
+
+                                    dataFancybox:
+                                        trigger.hasAttribute(
+                                            "data-fancybox"
+                                        ),
+                                },
+                            });
+                        }
+                    }
+                }
+
+
+                return results;
+            },
+            {
+                pageUrl,
+                pageTitle,
+
+                keywords:
+                    FORM_TRIGGER_KEYWORDS,
+            }
+        );
+    };
 
 export const scanPopupForms =
     async (
         page,
-        pageUrl
+        pageUrl,
+        options = {}
     ) => {
+        const {
+            skipInitialNavigation =
+                false,
+        } =
+            options;
+
         const forms = [];
 
+        const inlineForms =
+            await scanInlinePopupForms(
+                page
+            )
+                .catch(
+                    () => []
+                );
 
-        await gotoSafely(
-            page,
+
+        if (
+            inlineForms.length
+        ) {
+            forms.push(
+                ...inlineForms
+            );
+        }
+
+
+        /*
+         * Если вызывающий код уже находится
+         * на нужной странице, повторно
+         * загружать её совершенно незачем.
+         */
+        if (
+            !skipInitialNavigation ||
+            page.url() !==
             pageUrl
-        );
+        ) {
+    
+        if (
+            page.url() !==
+            pageUrl
+        ) {
+            await gotoSafely(
+                page,
+                pageUrl,
+                {
+                    attempts:
+                        2,
+
+                    timeout:
+                        18000,
+
+                    settleDelay:
+                        300,
+                }
+            );
+        }       
+            const [
+                beforeForms,
+                beforeFields,
+            ] =
+                await Promise.all([
+                    scanPageForms(
+                        page
+                    ),
+
+                    scanVisibleFields(
+                        page
+                    ),
+                ]);
+        }
 
 
         const triggers =
@@ -2108,30 +3494,67 @@ export const scanPopupForms =
                 page
             );
 
+        const knownInlineTargets =
+            new Set(
+                inlineForms
+                    .map(
+                        (
+                            form
+                        ) =>
+                            form.inlineTarget
+                    )
+                    .filter(
+                        Boolean
+                    )
+            );
+
+
+        const dynamicTriggers =
+            triggers.filter(
+                (
+                    trigger
+                ) =>
+                    !trigger.dataSrc ||
+                    !knownInlineTargets.has(
+                        trigger.dataSrc
+                    )
+            );
 
         for (
-            const trigger of
-            triggers
-            ) {
+            let triggerIndex = 0;
+            triggerIndex <
+            triggers.length;
+            triggerIndex++
+        ) {
+            const trigger =
+                triggers[
+                    triggerIndex
+            ];
+
             try {
                 /*
                  * Каждый trigger
                  * проверяем с чистой страницы.
                  */
-                await gotoSafely(
-                    page,
-                    pageUrl
-                );
+                if (
+                    triggerIndex > 0 ||
+                    page.url() !== pageUrl
+                ) {
+                    await gotoSafely(
+                        page,
+                        pageUrl,
+                        {
+                            attempts:
+                                2,
 
+                            timeout:
+                                18000,
 
-                /*
-                 * Обычные <form>
-                 * ДО клика.
-                 */
-                const beforeForms =
-                    await scanPageForms(
-                        page
+                            settleDelay:
+                                300,
+                        }
                     );
+                }
 
 
                 const formVisibility =
@@ -2147,15 +3570,6 @@ export const scanPopupForms =
                                 form.visible,
                             ]
                         )
-                    );
-
-
-                /*
-                 * Видимые поля ДО клика.
-                 */
-                const beforeFields =
-                    await scanVisibleFields(
-                        page
                     );
 
 
@@ -2184,30 +3598,19 @@ export const scanPopupForms =
                     continue;
                 }
 
+                const [
+                    afterForms,
+                    afterFields,
+                ] =
+                    await Promise.all([
+                        scanPageForms(
+                            page
+                        ),
 
-                await page.waitForTimeout(
-                    700
-                );
-
-
-                /*
-                 * Обычные <form>
-                 * ПОСЛЕ клика.
-                 */
-                const afterForms =
-                    await scanPageForms(
-                        page
-                    );
-
-
-                /*
-                 * Все видимые поля
-                 * ПОСЛЕ клика.
-                 */
-                const afterFields =
-                    await scanVisibleFields(
-                        page
-                    );
+                        scanVisibleFields(
+                            page
+                        ),
+                    ]);
 
 
                 const newlyVisibleForms =

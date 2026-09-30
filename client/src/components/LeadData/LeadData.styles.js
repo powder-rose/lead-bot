@@ -58,15 +58,24 @@ export const LeadDataHeader = styled.div`
 
 export const LeadFields = styled.div`
     display: grid;
+
     grid-template-columns: repeat(
-        3,
+        4,
         minmax(0, 1fr)
     );
+
     gap: 10px;
 
     margin-bottom: 10px;
 
-    @media (max-width: 800px) {
+    @media (max-width: 1100px) {
+        grid-template-columns: repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    }
+
+    @media (max-width: 700px) {
         grid-template-columns: 1fr;
     }
 `;

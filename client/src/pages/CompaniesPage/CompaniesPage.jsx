@@ -116,10 +116,11 @@ export const CompaniesPage = () => {
     const [filters, setFilters] = useState(EMPTY_FILTERS);
 
     const [filterOptions, setFilterOptions] = useState({
-        statuses: [],
-        categories: [],
-        cities: [],
-        regions: [],
+    statuses: [],
+    categories: [],
+    cities: [],
+    regions: [],
+    locations: [],
     });
 
     const [loading, setLoading] = useState(true);
@@ -146,10 +147,25 @@ export const CompaniesPage = () => {
             const data = await getCompanyFilters();
 
             setFilterOptions({
-                statuses: data.statuses || [],
-                categories: data.categories || [],
-                cities: data.cities || [],
-                regions: data.regions || [],
+                statuses:
+                    data.statuses ||
+                    [],
+
+                categories:
+                    data.categories ||
+                    [],
+
+                cities:
+                    data.cities ||
+                    [],
+
+                regions:
+                    data.regions ||
+                    [],
+
+                locations:
+                    data.locations ||
+                    [],
             });
         } catch (error) {
             setError(
@@ -330,17 +346,116 @@ export const CompaniesPage = () => {
     };
 
     const handleFilterChange = (event) => {
-        const { name, value } = event.target;
+    const {
+        name,
+        value,
+    } =
+        event.target;
 
-        clearSelection();
+    clearSelection();
 
-        setFilters((current) => ({
-            ...current,
-            [name]: value,
-        }));
+    setFilters(
+        (current) => {
+            if (
+                name ===
+                "region"
+            ) {
+                if (!value) {
+                    return {
+                        ...current,
 
-        setPage(1);
-    };
+                        region:
+                            "",
+
+                        city:
+                            "",
+                    };
+                }
+                const cityBelongsToRegion =
+                    !current.city ||
+                    filterOptions.locations
+                        .some(
+                            (
+                                location
+                            ) =>
+                                location.city ===
+                                    current.city &&
+                                location.region ===
+                                    value
+                        );
+
+                return {
+                    ...current,
+
+                    region:
+                        value,
+                    city:
+                        cityBelongsToRegion
+                            ? current.city
+                            : "",
+                };
+            }
+
+            if (
+                name ===
+                "city"
+            ) {
+                if (!value) {
+                    return {
+                        ...current,
+
+                        city:
+                            "",
+                    };
+                }
+                const matches =
+                    filterOptions.locations
+                        .filter(
+                            (
+                                location
+                            ) =>
+                                location.city ===
+                                value
+                        );
+
+                const currentRegionMatch =
+                    matches.find(
+                        (
+                            location
+                        ) =>
+                            location.region ===
+                            current.region
+                    );
+
+                const detectedRegion =
+                    currentRegionMatch
+                        ?.region ||
+                    matches[0]
+                        ?.region ||
+                    "";
+
+                return {
+                    ...current,
+
+                    city:
+                        value,
+
+                    region:
+                        detectedRegion,
+                };
+            }
+
+            return {
+                ...current,
+
+                [name]:
+                    value,
+            };
+        }
+    );
+
+    setPage(1);
+};
 
     const resetFilters = () => {
         clearSelection();
@@ -356,6 +471,30 @@ export const CompaniesPage = () => {
         filters.city ||
         filters.region
     );
+
+    const availableCities =
+    filters.region
+        ? [
+              ...new Set(
+                  (filterOptions.locations || [])
+                      .filter(
+                          (location) =>
+                              location.region ===
+                              filters.region
+                      )
+                      .map(
+                          (location) =>
+                              location.city
+                      )
+              ),
+          ].sort(
+              (a, b) =>
+                  a.localeCompare(
+                      b,
+                      "ru"
+                  )
+          )
+        : filterOptions.cities || [];
 
     const openCreateModal = () => {
         setEditingCompany(null);
@@ -698,7 +837,7 @@ export const CompaniesPage = () => {
                             Все города
                         </option>
 
-                        {(filterOptions.cities || []).map(
+                        {(availableCities || []).map(
                             (city) => (
                                 <option
                                     key={city}
