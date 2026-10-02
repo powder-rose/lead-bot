@@ -5,11 +5,15 @@ import {
     LeadField,
     LeadInput,
     LeadTextarea,
+    FillModeSwitch,
+    FillModeButton,
 } from "./LeadData.styles.js";
 
 export const LeadData = ({
     leadData,
     onChange,
+    fillMode,
+    onFillModeChange,
 }) => {
     return (
         <LeadDataCard>
@@ -31,6 +35,37 @@ export const LeadData = ({
                         отправляется.
                     </p>
                 </div>
+                <FillModeSwitch>
+                    <FillModeButton
+                        type="button"
+                        $active={
+                            fillMode ===
+                            "auto"
+                        }
+                        onClick={() =>
+                            onFillModeChange(
+                                "auto"
+                            )
+                        }
+                    >
+                        Автоматически
+                    </FillModeButton>
+
+                    <FillModeButton
+                        type="button"
+                        $active={
+                            fillMode ===
+                            "manual"
+                        }
+                        onClick={() =>
+                            onFillModeChange(
+                                "manual"
+                            )
+                        }
+                    >
+                        Вручную
+                    </FillModeButton>
+                </FillModeSwitch>
             </LeadDataHeader>
 
             <LeadFields>

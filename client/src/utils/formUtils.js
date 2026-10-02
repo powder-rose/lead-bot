@@ -27,16 +27,20 @@ export const getDomain = (url) => {
 
 export const getFieldType = (field) => {
     const value = [
-        field?.name,
-        field?.id,
-        field?.placeholder,
-        field?.ariaLabel,
-        field?.label,
-        field?.type,
-        field?.surroundingText,
-        field?.autocomplete,
-        field?.inputMode,
+    field?.name,
+    field?.id,
+    field?.placeholder,
+    field?.ariaLabel,
+    field?.label,
+    field?.type,
+    field?.surroundingText,
+    field?.autocomplete,
+    field?.inputMode,
     ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+    
     const directValue = [
         field?.name,
         field?.id,

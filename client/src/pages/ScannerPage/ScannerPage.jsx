@@ -65,6 +65,11 @@ export const ScannerPage = () => {
     });
 
     const [
+    fillMode,
+    setFillMode,
+] = useState("auto");
+
+    const [
         testingForm,
         setTestingForm,
     ] = useState(null);
@@ -146,7 +151,10 @@ export const ScannerPage = () => {
 
 
     const handleTestFill =
-        async (form) => {
+    async (
+        form,
+        fieldValues = []
+    ) => {
             setTestingForm(
                 form.formIndex
             );
@@ -167,6 +175,10 @@ export const ScannerPage = () => {
 
                         leadData,
 
+                        fillMode,
+
+                        fieldValues,   
+
                         trigger:
                             form.trigger ||
                             null,
@@ -183,6 +195,7 @@ export const ScannerPage = () => {
                             form.source ||
                             "page",
                         },
+
                     });
 
                 setTestResult({
@@ -259,6 +272,13 @@ export const ScannerPage = () => {
                     onChange={
                         handleLeadChange
                     }
+                    fillMode={
+                        fillMode
+                    }
+
+                    onFillModeChange={
+                        setFillMode
+                    }
                 />
 
                 <ScanResults
@@ -267,6 +287,9 @@ export const ScannerPage = () => {
                     }
                     loading={
                         loading
+                    }
+                    leadData={
+                        leadData
                     }
                     testingForm={
                         testingForm
@@ -279,6 +302,9 @@ export const ScannerPage = () => {
                     }
                     onTestFill={
                         handleTestFill
+                    }
+                    fillMode={
+                        fillMode
                     }
                 />
             </Content>

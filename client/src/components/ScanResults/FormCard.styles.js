@@ -528,3 +528,214 @@ export const SendResult = styled.div`
         margin-top: 14px;
     }
 `;
+    export const ActionRow = styled.div`
+    margin-top: 18px;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    ${TestFillButton} {
+        margin-top: 0;
+    }
+
+    @media (max-width: 700px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+
+export const FormDataButton = styled.button`
+    width: 100%;
+    height: 46px;
+
+    padding: 0 15px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border: 1px solid ${BORDER};
+    border-radius: 12px;
+
+    background: #ffffff;
+    color: ${TEXT};
+
+    cursor: pointer;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    &:hover {
+        background: #f8f8f8;
+    }
+`;
+
+
+export const FormDataPanel = styled.div`
+    margin-top: 18px;
+    padding: 18px;
+
+    border: 1px solid ${BORDER};
+    border-radius: 14px;
+
+    background: #fafafa;
+`;
+
+
+export const FormDataTitle = styled.div`
+    margin-bottom: 14px;
+
+    color: ${TEXT};
+
+    font-size: 12px;
+    font-weight: 650;
+`;
+
+
+export const FormDataGrid = styled.div`
+    display: grid;
+
+    grid-template-columns: repeat(
+        2,
+        minmax(0, 1fr)
+    );
+
+    gap: 8px;
+
+    @media (max-width: 700px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+
+export const FormDataField = styled.div`
+    padding: 10px 12px;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+    border: 1px solid ${BORDER};
+
+    span,
+    strong {
+        display: block;
+    }
+
+    span {
+        margin-bottom: 4px;
+
+        color: ${MUTED};
+
+        font-size: 8px;
+    }
+
+    strong {
+        overflow: hidden;
+
+        color: ${TEXT};
+
+        font-size: 10px;
+        font-weight: 550;
+
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+`;
+
+
+export const ExtraFieldsTitle = styled.div`
+    margin: 18px 0 10px;
+
+    padding-top: 15px;
+
+    border-top: 1px solid ${BORDER};
+
+    color: ${TEXT};
+
+    font-size: 11px;
+    font-weight: 650;
+`;
+
+
+export const ExtraFieldRow = styled.div`
+    margin-top: 10px;
+
+    label {
+        display: block;
+
+        margin-bottom: 6px;
+
+        color: #777777;
+
+        font-size: 9px;
+    }
+`;
+
+
+export const ExtraInput = styled.input`
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    border: 1px solid ${BORDER};
+    border-radius: 10px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: ${TEXT};
+
+    font-size: 10px;
+
+    &:focus {
+        border-color: ${PINK};
+    }
+`;
+
+
+export const ExtraSelect = styled.select`
+    width: 100%;
+    height: 42px;
+
+    padding: 0 12px;
+
+    border: 1px solid ${BORDER};
+    border-radius: 10px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: ${TEXT};
+
+    font-size: 10px;
+`;
+
+
+export const ExtraCheckbox = styled.label`
+    margin-top: 10px;
+    padding: 11px 12px;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+
+    border: 1px solid ${BORDER};
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    input {
+        margin-top: 1px;
+    }
+
+    span {
+        color: ${TEXT};
+
+        font-size: 10px;
+        line-height: 1.45;
+    }
+`;

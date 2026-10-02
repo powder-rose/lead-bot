@@ -1,4 +1,9 @@
 import {
+    useMemo,
+    useState,
+} from "react";
+
+import {
     FormCard as FormCardContainer,
     FormCardHeader,
     FormNumber,
@@ -25,6 +30,17 @@ import {
     FormScore,
     RecommendedBadge,
     ScoreReasons,
+    ActionRow,
+    FormDataButton,
+    FormDataPanel,
+    FormDataTitle,
+    FormDataGrid,
+    FormDataField,
+    ExtraFieldsTitle,
+    ExtraFieldRow,
+    ExtraInput,
+    ExtraSelect,
+    ExtraCheckbox,
 } from "./FormCard.styles.js";
 
 
@@ -38,6 +54,8 @@ import {
 
 export const FormCard = ({
     form,
+    leadData,
+    fillMode,
     testingForm,
     testResult,
     testError,
@@ -46,6 +64,193 @@ export const FormCard = ({
     const isCurrentTest =
         testResult?.formIndex ===
         form.formIndex;
+
+    const [
+    formDataOpen,
+    setFormDataOpen,
+] =
+    useState(false);
+
+
+const additionalFields =
+    useMemo(
+        () =>
+            (
+                form.fields ||
+                []
+            )
+                .map(
+                    (
+                        field,
+                        index
+                    ) => ({
+                        field,
+                        index,
+
+                        detected:
+                            getFieldType(
+                                field
+                            ),
+                    })
+                )
+                .filter(
+                    (
+                        item
+                    ) =>
+                        ![
+                            "name",
+                            "phone",
+                            "email",
+                            "subject",
+                            "message",
+                        ].includes(
+                            item.detected
+                                .type
+                        )
+                ),
+        [
+            form.fields,
+        ]
+    );
+
+
+const makeFieldKey = (
+    field,
+    index
+) =>
+    [
+        field.id,
+        field.name,
+        field.type,
+        field.value,
+        index,
+    ].join(
+        "::"
+    );
+
+
+const [
+    extraValues,
+    setExtraValues,
+] =
+    useState({});
+
+
+const setExtraValue = (
+    key,
+    value
+) => {
+    setExtraValues(
+        (
+            current
+        ) => ({
+            ...current,
+
+            [key]:
+                value,
+        })
+    );
+};
+
+
+const buildFieldValues =
+    () => {
+        return additionalFields
+            .map(
+                (
+                    {
+                        field,
+                        index,
+                    }
+                ) => {
+                    const key =
+                        makeFieldKey(
+                            field,
+                            index
+                        );
+
+                    const type =
+                        (
+                            field.type ||
+                            ""
+                        ).toLowerCase();
+
+
+                    if (
+                        type ===
+                        "checkbox"
+                    ) {
+                        return {
+                            id:
+                                field.id ||
+                                "",
+
+                            name:
+                                field.name ||
+                                "",
+
+                            type,
+
+                            checked:
+                                Boolean(
+                                    extraValues[
+                                        key
+                                    ]
+                                ),
+                        };
+                    }
+
+
+                    if (
+                        type ===
+                        "radio"
+                    ) {
+                        return {
+                            id:
+                                field.id ||
+                                "",
+
+                            name:
+                                field.name ||
+                                "",
+
+                            type,
+
+                            optionValue:
+                                field.value ||
+                                "",
+
+                            checked:
+                                extraValues[
+                                    `radio:${
+                                        field.name
+                                    }`
+                                ] ===
+                                key,
+                        };
+                    }
+
+
+                    return {
+                        id:
+                            field.id ||
+                            "",
+
+                        name:
+                            field.name ||
+                            "",
+
+                        type,
+
+                        value:
+                            extraValues[
+                                key
+                            ] ??
+                            "",
+                    };
+                }
+            );
+    };
 
     return (
         <FormCardContainer>
@@ -229,25 +434,350 @@ export const FormCard = ({
                 </ButtonsSection>
             )}
 
-            <TestFillButton
-                type="button"
-                onClick={() =>
-                    onTestFill(form)
-                }
-                disabled={
-                    testingForm ===
-                    form.formIndex
-                }
-            >
-                {testingForm ===
-                form.formIndex
-                    ? "Заполняем..."
-                    : "Тестовое заполнение"}
+            {formDataOpen && (
+                <FormDataPanel>
+                    <FormDataTitle>
+                        Данные для этой заявки
+                    </FormDataTitle>
 
-                <span>
-                    →
-                </span>
-            </TestFillButton>
+
+                    <FormDataGrid>
+                        <FormDataField>
+                            <span>
+                                Имя
+                            </span>
+
+                            <strong>
+                                {leadData?.name ||
+                                    "Не указано"}
+                            </strong>
+                        </FormDataField>
+
+                        <FormDataField>
+                            <span>
+                                Телефон
+                            </span>
+
+                            <strong>
+                                {leadData?.phone ||
+                                    "Не указано"}
+                            </strong>
+                        </FormDataField>
+
+                        <FormDataField>
+                            <span>
+                                Email
+                            </span>
+
+                            <strong>
+                                {leadData?.email ||
+                                    "Не указано"}
+                            </strong>
+                        </FormDataField>
+
+                        <FormDataField>
+                            <span>
+                                Тема письма
+                            </span>
+
+                            <strong>
+                                {leadData?.subject ||
+                                    "Не указано"}
+                            </strong>
+                        </FormDataField>
+
+                        <FormDataField>
+                            <span>
+                                Комментарий
+                            </span>
+
+                            <strong>
+                                {leadData?.message ||
+                                    "Не указано"}
+                            </strong>
+                        </FormDataField>
+                    </FormDataGrid>
+
+
+                    {additionalFields.length >
+                        0 && (
+                            <>
+                                <ExtraFieldsTitle>
+                                    Дополнительные поля сайта
+                                </ExtraFieldsTitle>
+
+
+                                {additionalFields.map(
+                                    (
+                                        {
+                                            field,
+                                            index,
+                                        }
+                                    ) => {
+                                        const key =
+                                            makeFieldKey(
+                                                field,
+                                                index
+                                            );
+
+                                        const type =
+                                            (
+                                                field.type ||
+                                                ""
+                                            ).toLowerCase();
+
+                                        const label =
+                                            field.label ||
+                                            field.placeholder ||
+                                            field.name ||
+                                            "Дополнительное поле";
+
+
+                                        if (
+                                            type ===
+                                            "checkbox"
+                                        ) {
+                                            return (
+                                                <ExtraCheckbox
+                                                    key={
+                                                        key
+                                                    }
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={
+                                                            Boolean(
+                                                                extraValues[
+                                                                key
+                                                                ]
+                                                            )
+                                                        }
+                                                        onChange={
+                                                            (
+                                                                event
+                                                            ) =>
+                                                                setExtraValue(
+                                                                    key,
+                                                                    event
+                                                                        .target
+                                                                        .checked
+                                                                )
+                                                        }
+                                                    />
+
+                                                    <span>
+                                                        {label}
+
+                                                        {field.required
+                                                            ? " *"
+                                                            : ""}
+                                                    </span>
+                                                </ExtraCheckbox>
+                                            );
+                                        }
+
+
+                                        if (
+                                            type ===
+                                            "radio"
+                                        ) {
+                                            return (
+                                                <ExtraCheckbox
+                                                    key={
+                                                        key
+                                                    }
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name={`form-${form.formIndex
+                                                            }-${field.name
+                                                            }`}
+                                                        checked={
+                                                            extraValues[
+                                                            `radio:${field.name
+                                                            }`
+                                                            ] ===
+                                                            key
+                                                        }
+                                                        onChange={() =>
+                                                            setExtraValue(
+                                                                `radio:${field.name
+                                                                }`,
+                                                                key
+                                                            )
+                                                        }
+                                                    />
+
+                                                    <span>
+                                                        {label ||
+                                                            field.value}
+                                                    </span>
+                                                </ExtraCheckbox>
+                                            );
+                                        }
+
+
+                                        if (
+                                            field.tag ===
+                                            "select"
+                                        ) {
+                                            return (
+                                                <ExtraFieldRow
+                                                    key={
+                                                        key
+                                                    }
+                                                >
+                                                    <label>
+                                                        {label}
+
+                                                        {field.required
+                                                            ? " *"
+                                                            : ""}
+                                                    </label>
+
+                                                    <ExtraSelect
+                                                        value={
+                                                            extraValues[
+                                                            key
+                                                            ] ??
+                                                            ""
+                                                        }
+                                                        onChange={
+                                                            (
+                                                                event
+                                                            ) =>
+                                                                setExtraValue(
+                                                                    key,
+                                                                    event
+                                                                        .target
+                                                                        .value
+                                                                )
+                                                        }
+                                                    >
+                                                        <option value="">
+                                                            Не выбрано
+                                                        </option>
+
+                                                        {(field.options ||
+                                                            [])
+                                                            .filter(
+                                                                (
+                                                                    option
+                                                                ) =>
+                                                                    !option
+                                                                        .disabled
+                                                            )
+                                                            .map(
+                                                                (
+                                                                    option
+                                                                ) => (
+                                                                    <option
+                                                                        key={`${key}-${option.value}`}
+                                                                        value={
+                                                                            option.value
+                                                                        }
+                                                                    >
+                                                                        {option.label ||
+                                                                            option.value}
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                    </ExtraSelect>
+                                                </ExtraFieldRow>
+                                            );
+                                        }
+
+
+                                        return (
+                                            <ExtraFieldRow
+                                                key={
+                                                    key
+                                                }
+                                            >
+                                                <label>
+                                                    {label}
+
+                                                    {field.required
+                                                        ? " *"
+                                                        : ""}
+                                                </label>
+
+                                                <ExtraInput
+                                                    value={
+                                                        extraValues[
+                                                        key
+                                                        ] ??
+                                                        ""
+                                                    }
+                                                    onChange={
+                                                        (
+                                                            event
+                                                        ) =>
+                                                            setExtraValue(
+                                                                key,
+                                                                event
+                                                                    .target
+                                                                    .value
+                                                            )
+                                                    }
+                                                />
+                                            </ExtraFieldRow>
+                                        );
+                                    }
+                                )}
+                            </>
+                        )}
+                </FormDataPanel>
+            )}
+
+            <ActionRow>
+                <FormDataButton
+                    type="button"
+                    onClick={() =>
+                        setFormDataOpen(
+                            (
+                                current
+                            ) =>
+                                !current
+                        )
+                    }
+                >
+                    Данные для заявки
+
+                    <span>
+                        {formDataOpen
+                            ? "↑"
+                            : "↓"}
+                    </span>
+                </FormDataButton>
+
+
+                <TestFillButton
+                    type="button"
+                    onClick={() =>
+                        onTestFill(
+                            form,
+                            fillMode ===
+                                "manual"
+                                ? buildFieldValues()
+                                : []
+                        )
+                    }
+                    disabled={
+                        testingForm ===
+                        form.formIndex
+                    }
+                >
+                    {testingForm ===
+                        form.formIndex
+                        ? "Заполняем..."
+                        : "Тестовое заполнение"}
+
+                    <span>
+                        →
+                    </span>
+                </TestFillButton>
+            </ActionRow>
 
             {isCurrentTest && (
                 <TestResultCard>

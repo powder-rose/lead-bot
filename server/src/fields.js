@@ -43,17 +43,21 @@ export const detectFieldType = (
     field
 ) => {
     const text = [
-        field.name,
-        field.id,
-        field.placeholder,
-        field.ariaLabel,
-        field.autocomplete,
-        field.inputMode,
-        field.className,
-        field.label,
-        field.surroundingText,
-        field.type,
+    field.name,
+    field.id,
+    field.placeholder,
+    field.ariaLabel,
+    field.autocomplete,
+    field.inputMode,
+    field.className,
+    field.label,
+    field.surroundingText,
+    field.type,
     ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
     const directText = [
     field.name,
     field.id,
@@ -398,6 +402,53 @@ export const getFieldMetadata =
                         Boolean(
                             modal
                         ),
+                        
+                    required:
+                        element.required ===
+                        true,
+
+                    checked:
+                        element.checked ===
+                        true,
+
+                    value:
+                        "value" in element
+                            ? element.value || ""
+                            : "",
+
+                    multiple:
+                        element.multiple ===
+                        true,
+
+                    options:
+                        element.tagName
+                            .toLowerCase() ===
+                            "select"
+                            ? Array.from(
+                                element.options ||
+                                []
+                            ).map(
+                                (
+                                    option
+                                ) => ({
+                                    value:
+                                        option.value,
+
+                                    label:
+                                        clean(
+                                            option.textContent
+                                        ),
+
+                                    selected:
+                                        option.selected ===
+                                        true,
+
+                                    disabled:
+                                        option.disabled ===
+                                        true,
+                                })
+                            )
+                        : [],
                 };
             }
         );
@@ -1263,4 +1314,136 @@ export const fillFieldSafely =
         } catch {
             return false;
         }
+    };
+    
+    export const applyFormFieldValue =
+    async (
+        field,
+        config,
+        metadata
+    ) => {
+        const type =
+            (
+                metadata.type ||
+                ""
+            ).toLowerCase();
+
+        const tag =
+            (
+                metadata.tag ||
+                ""
+            ).toLowerCase();
+
+
+        /*
+         * CHECKBOX
+         */
+        if (
+            type ===
+            "checkbox"
+        ) {
+            try {
+                if (
+                    config.checked
+                ) {
+                    await field.check({
+                        force:
+                            true,
+                    });
+                } else {
+                    await field.uncheck({
+                        force:
+                            true,
+                    });
+                }
+
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+
+        /*
+         * RADIO
+         */
+        if (
+            type ===
+            "radio"
+        ) {
+            if (
+                !config.checked
+            ) {
+                return true;
+            }
+
+            try {
+                await field.check({
+                    force:
+                        true,
+                });
+
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+
+        /*
+         * SELECT
+         */
+        if (
+            tag ===
+            "select"
+        ) {
+            try {
+                const value =
+                    config.value;
+
+                if (
+                    value ===
+                        undefined ||
+                    value ===
+                        null ||
+                    value ===
+                        ""
+                ) {
+                    return false;
+                }
+
+
+                try {
+                    await field.selectOption({
+                        value:
+                            String(
+                                value
+                            ),
+                    });
+
+                    return true;
+                } catch {
+                    await field.selectOption({
+                        label:
+                            String(
+                                value
+                            ),
+                    });
+
+                    return true;
+                }
+            } catch {
+                return false;
+            }
+        }
+
+
+        /*
+         * Остальные input / textarea.
+         */
+        return fillFieldSafely(
+            field,
+            config.value,
+            metadata
+        );
     };

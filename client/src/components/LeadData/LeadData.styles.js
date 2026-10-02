@@ -20,6 +20,16 @@ export const LeadDataCard = styled.section`
 `;
 
 export const LeadDataHeader = styled.div`
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+
+    @media (max-width: 700px) {
+    flex-direction: column;
+    }
+
     margin-bottom: 22px;
 
     span {
@@ -164,4 +174,59 @@ export const LeadTextarea = styled.textarea`
     &::placeholder {
         color: #b4b4b4;
     }
+`;
+export const FillModeSwitch = styled.div`
+    padding: 4px;
+
+    display: flex;
+    gap: 4px;
+
+    border: 1px solid ${BORDER};
+    border-radius: 12px;
+
+    background: #f7f7f7;
+`;
+
+
+export const FillModeButton = styled.button`
+    height: 34px;
+
+    padding: 0 12px;
+
+    border: 0;
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    background: ${
+        ({
+            $active,
+        }) =>
+            $active
+                ? "#ffffff"
+                : "transparent"
+    };
+
+    color: ${
+        ({
+            $active,
+        }) =>
+            $active
+                ? PINK_DARK
+                : MUTED
+    };
+
+    box-shadow: ${
+        ({
+            $active,
+        }) =>
+            $active
+                ? "0 2px 8px rgba(0, 0, 0, 0.06)"
+                : "none"
+    };
+
+    font-size: 10px;
+    font-weight: 600;
+
+    transition: 0.15s;
 `;

@@ -28,6 +28,8 @@ import {
 export const ScanResults = ({
     result,
     loading,
+    fillMode,
+    leadData,
     testingForm,
     testResult,
     testError,
@@ -205,11 +207,17 @@ export const ScanResults = ({
                             testResult={
                                 testResult
                             }
+                            leadData={
+                                leadData
+                            }
                             testError={
                                 testError
                             }
                             onTestFill={
                                 onTestFill
+                            }
+                            fillMode={
+                                fillMode
                             }
                         />
                     )
