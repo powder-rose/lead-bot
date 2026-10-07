@@ -416,6 +416,48 @@ export const scanPageForms =
                                             required:
                                                 field.required ===
                                                 true,
+                                            
+                                            checked:
+                                                field.checked ===
+                                                true,
+
+                                            value:
+                                                field.value ||
+                                                "",
+
+                                            multiple:
+                                                field.multiple ===
+                                                true,
+
+                                            options:
+                                                field.tagName
+                                                    .toLowerCase() ===
+                                                    "select"
+                                                    ? Array.from(
+                                                        field.options ||
+                                                        []
+                                                    ).map(
+                                                        (
+                                                            option
+                                                        ) => ({
+                                                            value:
+                                                                option.value,
+
+                                                            label:
+                                                                clean(
+                                                                    option.textContent
+                                                                ),
+
+                                                            selected:
+                                                                option.selected ===
+                                                                true,
+
+                                                            disabled:
+                                                                option.disabled ===
+                                                                true,
+                                                        })
+                                                    )
+                                                : [],
                                         };
                                     }
                                 );
@@ -2973,6 +3015,47 @@ export const scanInlinePopupForms =
                             required:
                                 field.required ===
                                 true,
+                            checked:
+                                field.checked ===
+                                true,
+
+                            value:
+                                field.value ||
+                                "",
+
+                            multiple:
+                                field.multiple ===
+                                true,
+
+                            options:
+                                field.tagName
+                                    .toLowerCase() ===
+                                    "select"
+                                    ? Array.from(
+                                        field.options ||
+                                        []
+                                    ).map(
+                                        (
+                                            option
+                                        ) => ({
+                                            value:
+                                                option.value,
+
+                                            label:
+                                                clean(
+                                                    option.textContent
+                                                ),
+
+                                            selected:
+                                                option.selected ===
+                                                true,
+
+                                            disabled:
+                                                option.disabled ===
+                                                true,
+                                        })
+                                    )
+                                : [],
                         };
                     };
 

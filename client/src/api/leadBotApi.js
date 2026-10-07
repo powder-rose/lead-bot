@@ -35,6 +35,8 @@ export const testFillForm = ({
     leadData,
     trigger,
     formHint,
+    fillMode = "auto",
+    fieldValues = [],
 }) => {
     return request(
         "/api/test-fill",
@@ -45,8 +47,14 @@ export const testFillForm = ({
             body:
                 JSON.stringify({
                     pageUrl,
+
                     leadData,
+
                     trigger,
+
+                    fillMode,
+
+                    fieldValues,
 
                     formHint:
                         formHint ||
