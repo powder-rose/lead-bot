@@ -6,6 +6,11 @@ import {
     BORDER,
 } from "../../styles/theme.js";
 
+const STATUS_COLORS = {
+    checking: "#d6a632",
+    connected: "#59b982",
+    disconnected: "#d65f6f",
+};
 
 export const Topbar = styled.header`
     padding: 42px 48px 28px;
@@ -70,9 +75,19 @@ export const EnvironmentBadge = styled.div`
         width: 7px;
         height: 7px;
 
+        flex: 0 0 auto;
+
         border-radius: 50%;
 
-        background: #59b982;
+        background:
+            ${({ $status }) =>
+                STATUS_COLORS[
+                    $status
+                ] ||
+                STATUS_COLORS.checking};
+
+        transition:
+            background 0.2s ease;
     }
 
     @media (max-width: 700px) {
