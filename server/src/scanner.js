@@ -1448,9 +1448,7 @@ export const findFormTriggers =
                     info.id
                 ) {
                     selector =
-                        `#${CSS.escape(
-                            info.id
-                        )}`;
+                        `[id=${JSON.stringify(info.id)}]`;
                 }
 
                 if (
@@ -1695,9 +1693,7 @@ export const findFormTriggers =
                         info.id
                     ) {
                         selector =
-                            `#${CSS.escape(
-                                info.id
-                            )}`;
+                            `[id=${JSON.stringify(info.id)}]`;
                     }
 
 
@@ -3115,7 +3111,7 @@ export const scanInlinePopupForms =
 
                 for (
                     const trigger of
-                    dynamicTriggers
+                    triggers
                 ) {
                     const triggerText =
                         clean(
@@ -3533,45 +3529,28 @@ export const scanPopupForms =
          */
         if (
             !skipInitialNavigation ||
-            page.url() !==
-            pageUrl
+            page.url() !== pageUrl
         ) {
-    
-        if (
-            page.url() !==
-            pageUrl
-        ) {
-            await gotoSafely(
-                page,
-                pageUrl,
-                {
-                    attempts:
-                        2,
-
-                    timeout:
-                        18000,
-
-                    settleDelay:
-                        300,
-                }
-            );
-        }       
-            const [
-                beforeForms,
-                beforeFields,
-            ] =
-                await Promise.all([
-                    scanPageForms(
-                        page
-                    ),
-
-                    scanVisibleFields(
-                        page
-                    ),
-                ]);
+            if (page.url() !== pageUrl) {
+                await gotoSafely(
+                    page,
+                    pageUrl,
+                    {
+                        attempts: 2,
+                        timeout: 18000,
+                        settleDelay: 300,
+                    }
+                );
+            }
         }
 
-
+        const [
+            beforeForms,
+            beforeFields,
+        ] = await Promise.all([
+            scanPageForms(page),
+            scanVisibleFields(page),
+        ]);
         const triggers =
             await findFormTriggers(
                 page
