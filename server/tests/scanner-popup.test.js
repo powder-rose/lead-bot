@@ -239,13 +239,13 @@ test("detects a contact form opened in a new tab", async () => {
         );
 
         const pages = page.context().pages();
-
-        assert.ok(
-            pages.length >= 2,
-            "New browser tab was not opened"
+        assert.equal(
+            pages.length,
+            1,
+            "Temporary browser tab was not closed"
         );
 
-        const hasContactForm = forms.some(
+    const hasContactForm = forms.some(
             (form) =>
                 form.fields.some(
                     (field) => field.name === "phone"
@@ -253,7 +253,7 @@ test("detects a contact form opened in a new tab", async () => {
         );
 
         assert.ok(
-            hasContactForm,
+           hasContactForm,
             "Contact form in the new tab was not detected"
         );
     });

@@ -3867,12 +3867,30 @@ export const scanPopupForms =
                         },
                     });
                 }
-            } catch (
-                error
-                ) {
+            } catch (error) {
+                console.warn(
+                    "POPUP SCAN ERROR:",
+                    error.message
+                );
+            } finally {
+                const temporaryPages =
+                    page.context().pages().filter(
+                        (candidatePage) =>
+                            !pagesBeforeTrigger.has(candidatePage)
+                    );
+
+                for (const temporaryPage of temporaryPages) {
+                    await temporaryPage.close().catch(
+                        (error) => {
+                            console.warn(
+                                "POPUP TAB CLOSE ERROR:",
+                                error.message
+                            );
+                        }
+                    );
+                }
             }
         }
-
 
         return forms;
     };
