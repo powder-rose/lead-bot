@@ -205,3 +205,56 @@ test("reopens a dynamic popup and fills its fields", async () => {
         );
     });
 });
+
+test("detects a contact form opened in a new tab", async () => {
+    await withTestPage(`
+        <button id="open-external-form">
+            Заказать звонок
+        </button>
+
+        <script>
+            document.getElementById("open-external-form")
+                .addEventListener("click", () => {
+                    const popup = window.open(
+                        "about:blank",
+                        "_blank"
+                    );
+
+                    popup.document.body.innerHTML = \`
+                        <form id="popup-contact-form">
+                            <input type="text" name="name">
+                            <input type="tel" name="phone">
+                            <button type="submit">
+                                Отправить
+                            </button>
+                        </form>
+                    \`;
+                });
+        </script>
+    `, async (page) => {
+        const forms = await scanPopupForms(
+            page,
+            page.url(),
+            { skipInitialNavigation: true }
+        );
+
+        const pages = page.context().pages();
+
+        assert.ok(
+            pages.length >= 2,
+            "New browser tab was not opened"
+        );
+
+        const hasContactForm = forms.some(
+            (form) =>
+                form.fields.some(
+                    (field) => field.name === "phone"
+                )
+        );
+
+        assert.ok(
+            hasContactForm,
+            "Contact form in the new tab was not detected"
+        );
+    });
+});

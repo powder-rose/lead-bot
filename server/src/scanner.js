@@ -3588,10 +3588,13 @@ export const scanPopupForms =
             triggers.length;
             triggerIndex++
         ) {
-            const trigger =
+                        const trigger =
                 triggers[
                     triggerIndex
-            ];
+                ];
+
+            const pagesBeforeTrigger =
+                new Set(page.context().pages());
 
             try {
                 /*
@@ -3659,19 +3662,38 @@ export const scanPopupForms =
                 if (!opened) {
                     continue;
                 }
+                                const popupPage =
+                    page.context().pages().find(
+                        (candidatePage) =>
+                            !pagesBeforeTrigger.has(candidatePage)
+                    );
+
+                const formPage = popupPage || page;
+
+                if (popupPage) {
+                    await formPage.waitForLoadState(
+                        "domcontentloaded",
+                        { timeout: 5000 }
+                    ).catch(() => {});
+
+                    await formPage.locator(
+                        "form, input, textarea, select"
+                    ).first().waitFor({
+                        state: "attached",
+                        timeout: 3000,
+                    }).catch(() => {});
+
+                    formVisibility.clear();
+                    beforeFieldPaths.clear();
+                }
 
                 const [
                     afterForms,
                     afterFields,
                 ] =
                     await Promise.all([
-                        scanPageForms(
-                            page
-                        ),
-
-                        scanVisibleFields(
-                            page
-                        ),
+                        scanPageForms(formPage),
+                        scanVisibleFields(formPage),
                     ]);
 
 
@@ -3722,6 +3744,11 @@ export const scanPopupForms =
                         ) {
                         forms.push({
                             ...form,
+
+                            pageUrl:
+                                popupPage
+                                    ? pageUrl
+                                    : form.pageUrl,
 
                             source:
                                 "popup",
@@ -3785,10 +3812,12 @@ export const scanPopupForms =
                             null,
 
                         pageUrl:
-                            page.url(),
+                            popupPage
+                                ? pageUrl
+                                : page.url(),
 
                         pageTitle:
-                            await page.title(),
+                            await formPage.title(),
 
                         action:
                             "",
