@@ -1,0 +1,30 @@
+
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Generated files
+dist/
+dist-ssr/
+coverage/
+public_html/
+
+# Runtime and imported data
+server/data/
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite3
+**/*.xlsx
+**/*.xls
+**/*.jsonl
+**/*.zip
+
+# Lock files
+**/package-lock.json
+
+# Logs and environment
+**/*.log
+**/.env
+**/.env.*
