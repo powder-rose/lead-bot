@@ -1448,9 +1448,7 @@ export const findFormTriggers =
                     info.id
                 ) {
                     selector =
-                        `#${CSS.escape(
-                            info.id
-                        )}`;
+                        `[id=${JSON.stringify(info.id)}]`;
                 }
 
                 if (
@@ -1695,9 +1693,7 @@ export const findFormTriggers =
                         info.id
                     ) {
                         selector =
-                            `#${CSS.escape(
-                                info.id
-                            )}`;
+                            `[id=${JSON.stringify(info.id)}]`;
                     }
 
 
@@ -3115,7 +3111,7 @@ export const scanInlinePopupForms =
 
                 for (
                     const trigger of
-                    dynamicTriggers
+                    triggers
                 ) {
                     const triggerText =
                         clean(
@@ -3533,45 +3529,28 @@ export const scanPopupForms =
          */
         if (
             !skipInitialNavigation ||
-            page.url() !==
-            pageUrl
+            page.url() !== pageUrl
         ) {
-    
-        if (
-            page.url() !==
-            pageUrl
-        ) {
-            await gotoSafely(
-                page,
-                pageUrl,
-                {
-                    attempts:
-                        2,
-
-                    timeout:
-                        18000,
-
-                    settleDelay:
-                        300,
-                }
-            );
-        }       
-            const [
-                beforeForms,
-                beforeFields,
-            ] =
-                await Promise.all([
-                    scanPageForms(
-                        page
-                    ),
-
-                    scanVisibleFields(
-                        page
-                    ),
-                ]);
+            if (page.url() !== pageUrl) {
+                await gotoSafely(
+                    page,
+                    pageUrl,
+                    {
+                        attempts: 2,
+                        timeout: 18000,
+                        settleDelay: 300,
+                    }
+                );
+            }
         }
 
-
+        const [
+            beforeForms,
+            beforeFields,
+        ] = await Promise.all([
+            scanPageForms(page),
+            scanVisibleFields(page),
+        ]);
         const triggers =
             await findFormTriggers(
                 page
@@ -3609,10 +3588,13 @@ export const scanPopupForms =
             triggers.length;
             triggerIndex++
         ) {
-            const trigger =
+                        const trigger =
                 triggers[
                     triggerIndex
-            ];
+                ];
+
+            const pagesBeforeTrigger =
+                new Set(page.context().pages());
 
             try {
                 /*
@@ -3680,19 +3662,38 @@ export const scanPopupForms =
                 if (!opened) {
                     continue;
                 }
+                                const popupPage =
+                    page.context().pages().find(
+                        (candidatePage) =>
+                            !pagesBeforeTrigger.has(candidatePage)
+                    );
+
+                const formPage = popupPage || page;
+
+                if (popupPage) {
+                    await formPage.waitForLoadState(
+                        "domcontentloaded",
+                        { timeout: 5000 }
+                    ).catch(() => {});
+
+                    await formPage.locator(
+                        "form, input, textarea, select"
+                    ).first().waitFor({
+                        state: "attached",
+                        timeout: 3000,
+                    }).catch(() => {});
+
+                    formVisibility.clear();
+                    beforeFieldPaths.clear();
+                }
 
                 const [
                     afterForms,
                     afterFields,
                 ] =
                     await Promise.all([
-                        scanPageForms(
-                            page
-                        ),
-
-                        scanVisibleFields(
-                            page
-                        ),
+                        scanPageForms(formPage),
+                        scanVisibleFields(formPage),
                     ]);
 
 
@@ -3743,6 +3744,11 @@ export const scanPopupForms =
                         ) {
                         forms.push({
                             ...form,
+
+                            pageUrl:
+                                popupPage
+                                    ? pageUrl
+                                    : form.pageUrl,
 
                             source:
                                 "popup",
@@ -3806,10 +3812,12 @@ export const scanPopupForms =
                             null,
 
                         pageUrl:
-                            page.url(),
+                            popupPage
+                                ? pageUrl
+                                : page.url(),
 
                         pageTitle:
-                            await page.title(),
+                            await formPage.title(),
 
                         action:
                             "",
@@ -3859,12 +3867,30 @@ export const scanPopupForms =
                         },
                     });
                 }
-            } catch (
-                error
-                ) {
+            } catch (error) {
+                console.warn(
+                    "POPUP SCAN ERROR:",
+                    error.message
+                );
+            } finally {
+                const temporaryPages =
+                    page.context().pages().filter(
+                        (candidatePage) =>
+                            !pagesBeforeTrigger.has(candidatePage)
+                    );
+
+                for (const temporaryPage of temporaryPages) {
+                    await temporaryPage.close().catch(
+                        (error) => {
+                            console.warn(
+                                "POPUP TAB CLOSE ERROR:",
+                                error.message
+                            );
+                        }
+                    );
+                }
             }
         }
-
 
         return forms;
     };
