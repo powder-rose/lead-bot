@@ -1,521 +1,291 @@
-import {
-    createBrowserSession,
-    gotoSafely,
-} from "./src/browser.js";
+import { createBrowserSession, gotoSafely } from './src/browser.js';
 
+const URL = 'https://dnd69.ru/';
 
-const URL =
-    "https://dnd69.ru/";
+const BUTTON_SELECTOR = '[data-fancybox][data-src="#call"]';
 
-const BUTTON_SELECTOR =
-    '[data-fancybox][data-src="#call"]';
+const TARGET_SELECTOR = '#call';
 
-const TARGET_SELECTOR =
-    "#call";
+const printState = async (page, label) => {
+  const button = page.locator(BUTTON_SELECTOR);
 
+  const target = page.locator(TARGET_SELECTOR);
 
-const printState =
-    async (
-        page,
-        label
-    ) => {
-        const button =
-            page.locator(
-                BUTTON_SELECTOR
-            );
+  const buttonCount = await button.count().catch(() => 0);
 
-        const target =
-            page.locator(
-                TARGET_SELECTOR
-            );
+  const targetCount = await target.count().catch(() => 0);
 
-        const buttonCount =
-            await button
-                .count()
-                .catch(
-                    () => 0
-                );
+  const targetVisible = targetCount
+    ? await target
+        .first()
+        .isVisible()
+        .catch(() => false)
+    : false;
 
-        const targetCount =
-            await target
-                .count()
-                .catch(
-                    () => 0
-                );
+  const formsInTarget = await page
+    .locator('#call form')
+    .count()
+    .catch(() => 0);
 
-        const targetVisible =
-            targetCount
-                ? await target
-                    .first()
-                    .isVisible()
-                    .catch(
-                        () => false
-                    )
-                : false;
-
-        const formsInTarget =
-            await page
-                .locator(
-                    "#call form"
-                )
-                .count()
-                .catch(
-                    () => 0
-                );
-
-        const fieldsInTarget =
-            await page
-                .locator(`
+  const fieldsInTarget = await page
+    .locator(
+      `
                     #call input,
                     #call textarea,
                     #call select
-                `)
-                .count()
-                .catch(
-                    () => 0
-                );
+                `,
+    )
+    .count()
+    .catch(() => 0);
 
-        const visibleForms =
-            await page
-                .locator(
-                    "form:visible"
-                )
-                .count()
-                .catch(
-                    () => 0
-                );
+  const visibleForms = await page
+    .locator('form:visible')
+    .count()
+    .catch(() => 0);
 
-        const visibleFields =
-            await page
-                .locator(`
+  const visibleFields = await page
+    .locator(
+      `
                     input:visible,
                     textarea:visible,
                     select:visible
-                `)
-                .count()
-                .catch(
-                    () => 0
-                );
+                `,
+    )
+    .count()
+    .catch(() => 0);
 
-        const fancyboxVisible =
-            await page
-                .locator(`
+  const fancyboxVisible = await page
+    .locator(
+      `
                     .fancybox-container:visible,
                     .fancybox-content:visible,
                     .fancybox-slide:visible
-                `)
-                .count()
-                .catch(
-                    () => 0
-                );
+                `,
+    )
+    .count()
+    .catch(() => 0);
 
+  console.log(`\n========== ${label} ==========`);
 
-        console.log(
-            `\n========== ${label} ==========`
-        );
+  console.log({
+    url: page.url(),
 
-        console.log({
-            url:
-                page.url(),
+    buttonCount,
 
-            buttonCount,
+    targetCount,
 
-            targetCount,
+    targetVisible,
 
-            targetVisible,
+    formsInTarget,
 
-            formsInTarget,
+    fieldsInTarget,
 
-            fieldsInTarget,
+    visibleForms,
 
-            visibleForms,
+    visibleFields,
 
-            visibleFields,
+    fancyboxVisible,
 
-            fancyboxVisible,
+    frames: page.frames().length,
+  });
 
-            frames:
-                page.frames()
-                    .length,
-        });
+  if (buttonCount) {
+    const html = await button
+      .first()
+      .evaluate(element => element.outerHTML)
+      .catch(() => null);
 
+    console.log('\nBUTTON HTML:');
 
-        if (
-            buttonCount
-        ) {
-            const html =
-                await button
-                    .first()
-                    .evaluate(
-                        (
-                            element
-                        ) =>
-                            element.outerHTML
-                    )
-                    .catch(
-                        () => null
-                    );
+    console.log(html);
+  }
 
-            console.log(
-                "\nBUTTON HTML:"
-            );
-
-            console.log(
-                html
-            );
-        }
-
-
-        if (
-            targetCount
-        ) {
-            const fields =
-                await page
-                    .locator(`
+  if (targetCount) {
+    const fields = await page
+      .locator(
+        `
                         #call input,
                         #call textarea,
                         #call select
-                    `)
-                    .evaluateAll(
-                        (
-                            elements
-                        ) =>
-                            elements.map(
-                                (
-                                    element
-                                ) => ({
-                                    tag:
-                                        element.tagName
-                                            .toLowerCase(),
+                    `,
+      )
+      .evaluateAll(elements =>
+        elements.map(element => ({
+          tag: element.tagName.toLowerCase(),
 
-                                    type:
-                                        element.getAttribute(
-                                            "type"
-                                        ) || "",
+          type: element.getAttribute('type') || '',
 
-                                    name:
-                                        element.getAttribute(
-                                            "name"
-                                        ) || "",
+          name: element.getAttribute('name') || '',
 
-                                    id:
-                                        element.id ||
-                                        "",
+          id: element.id || '',
 
-                                    placeholder:
-                                        element.getAttribute(
-                                            "placeholder"
-                                        ) || "",
+          placeholder: element.getAttribute('placeholder') || '',
 
-                                    value:
-                                        element.getAttribute(
-                                            "value"
-                                        ) || "",
-                                })
-                            )
-                    )
-                    .catch(
-                        () => []
-                    );
+          value: element.getAttribute('value') || '',
+        })),
+      )
+      .catch(() => []);
 
+    console.log('\nПОЛЯ В #call:');
 
-            console.log(
-                "\nПОЛЯ В #call:"
-            );
+    console.table(fields);
 
-            console.table(
-                fields
-            );
+    const targetHtml = await target
+      .first()
+      .evaluate(element => element.outerHTML.slice(0, 5000))
+      .catch(() => null);
 
+    console.log('\nНАЧАЛО #call HTML:');
 
-            const targetHtml =
-                await target
-                    .first()
-                    .evaluate(
-                        (
-                            element
-                        ) =>
-                            element.outerHTML
-                                .slice(
-                                    0,
-                                    5000
-                                )
-                    )
-                    .catch(
-                        () => null
-                    );
+    console.log(targetHtml);
+  }
+};
 
+const run = async () => {
+  let session;
 
-            console.log(
-                "\nНАЧАЛО #call HTML:"
-            );
+  try {
+    session = await createBrowserSession({
+      /*
+       * Для диагностики ничего
+       * не блокируем.
+       */
+      blockHeavyResources: false,
+    });
 
-            console.log(
-                targetHtml
-            );
-        }
-    };
+    const page = session.page;
 
+    await gotoSafely(page, URL, {
+      attempts: 2,
 
-const run =
-    async () => {
-        let session;
+      timeout: 25000,
 
+      /*
+       * Даём Fancybox и jQuery
+       * нормально загрузиться.
+       */
+      settleDelay: 2000,
+    });
 
-        try {
-            session =
-                await createBrowserSession({
-                    /*
-                     * Для диагностики ничего
-                     * не блокируем.
-                     */
-                    blockHeavyResources:
-                        false,
-                });
+    /*
+     * =================================
+     * ДО КЛИКА
+     * =================================
+     */
 
+    await printState(page, 'ДО КЛИКА');
 
-            const page =
-                session.page;
+    const button = page.locator(BUTTON_SELECTOR).first();
 
+    if (!(await button.count().catch(() => 0))) {
+      console.log('\n❌ Кнопка не найдена');
 
-            await gotoSafely(
-                page,
-                URL,
-                {
-                    attempts:
-                        2,
+      return;
+    }
 
-                    timeout:
-                        25000,
+    /*
+     * =================================
+     * КЛИКАЕМ ИМЕННО НА НУЖНУЮ КНОПКУ
+     * =================================
+     */
 
-                    /*
-                     * Даём Fancybox и jQuery
-                     * нормально загрузиться.
-                     */
-                    settleDelay:
-                        2000,
-                }
-            );
+    console.log('\nКликаем:', BUTTON_SELECTOR);
 
+    try {
+      await button.click({
+        timeout: 5000,
+      });
 
-            /*
-             * =================================
-             * ДО КЛИКА
-             * =================================
-             */
+      console.log('✅ normal click выполнен');
+    } catch (error) {
+      console.log('Normal click не сработал:', error.message);
 
-            await printState(
-                page,
-                "ДО КЛИКА"
-            );
+      try {
+        await button.click({
+          force: true,
 
+          timeout: 3000,
+        });
 
-            const button =
-                page
-                    .locator(
-                        BUTTON_SELECTOR
-                    )
-                    .first();
+        console.log('✅ force click выполнен');
+      } catch (forceError) {
+        console.log('❌ force click тоже не сработал:', forceError.message);
+      }
+    }
 
+    await page.waitForTimeout(1500);
 
-            if (
-                !(
-                    await button
-                        .count()
-                        .catch(
-                            () => 0
-                        )
-                )
-            ) {
-                console.log(
-                    "\n❌ Кнопка не найдена"
-                );
+    /*
+     * =================================
+     * ПОСЛЕ КЛИКА
+     * =================================
+     */
 
-                return;
-            }
+    await printState(page, 'ПОСЛЕ КЛИКА');
 
-
-            /*
-             * =================================
-             * КЛИКАЕМ ИМЕННО НА НУЖНУЮ КНОПКУ
-             * =================================
-             */
-
-            console.log(
-                "\nКликаем:",
-                BUTTON_SELECTOR
-            );
-
-
-            try {
-                await button.click({
-                    timeout:
-                        5000,
-                });
-
-                console.log(
-                    "✅ normal click выполнен"
-                );
-            } catch (
-                error
-            ) {
-                console.log(
-                    "Normal click не сработал:",
-                    error.message
-                );
-
-
-                try {
-                    await button.click({
-                        force:
-                            true,
-
-                        timeout:
-                            3000,
-                    });
-
-                    console.log(
-                        "✅ force click выполнен"
-                    );
-                } catch (
-                    forceError
-                ) {
-                    console.log(
-                        "❌ force click тоже не сработал:",
-                        forceError.message
-                    );
-                }
-            }
-
-
-            await page.waitForTimeout(
-                1500
-            );
-
-
-            /*
-             * =================================
-             * ПОСЛЕ КЛИКА
-             * =================================
-             */
-
-            await printState(
-                page,
-                "ПОСЛЕ КЛИКА"
-            );
-
-
-            /*
-             * Дополнительно посмотрим
-             * все видимые поля после click.
-             */
-            const visibleFields =
-                await page
-                    .locator(`
+    /*
+     * Дополнительно посмотрим
+     * все видимые поля после click.
+     */
+    const visibleFields = await page
+      .locator(
+        `
                         input:visible,
                         textarea:visible,
                         select:visible
-                    `)
-                    .evaluateAll(
-                        (
-                            elements
-                        ) =>
-                            elements.map(
-                                (
-                                    element
-                                ) => ({
-                                    tag:
-                                        element.tagName
-                                            .toLowerCase(),
+                    `,
+      )
+      .evaluateAll(elements =>
+        elements.map(element => ({
+          tag: element.tagName.toLowerCase(),
 
-                                    type:
-                                        element.getAttribute(
-                                            "type"
-                                        ) || "",
+          type: element.getAttribute('type') || '',
 
-                                    name:
-                                        element.getAttribute(
-                                            "name"
-                                        ) || "",
+          name: element.getAttribute('name') || '',
 
-                                    placeholder:
-                                        element.getAttribute(
-                                            "placeholder"
-                                        ) || "",
+          placeholder: element.getAttribute('placeholder') || '',
 
-                                    value:
-                                        element.getAttribute(
-                                            "value"
-                                        ) || "",
-                                })
-                            )
-                    )
-                    .catch(
-                        () => []
-                    );
+          value: element.getAttribute('value') || '',
+        })),
+      )
+      .catch(() => []);
 
+    console.log('\nВСЕ ВИДИМЫЕ ПОЛЯ ПОСЛЕ КЛИКА:');
 
-            console.log(
-                "\nВСЕ ВИДИМЫЕ ПОЛЯ ПОСЛЕ КЛИКА:"
-            );
+    console.table(visibleFields);
 
-            console.table(
-                visibleFields
-            );
+    /*
+     * И iframe тоже проверяем.
+     */
+    console.log("\nFRAME'Ы:");
 
-
-            /*
-             * И iframe тоже проверяем.
-             */
-            console.log(
-                "\nFRAME'Ы:"
-            );
-
-
-            for (
-                const [
-                    index,
-                    frame,
-                ] of
-                page.frames()
-                    .entries()
-            ) {
-                const count =
-                    await frame
-                        .locator(`
+    for (const [index, frame] of page.frames().entries()) {
+      const count = await frame
+        .locator(
+          `
                             input:visible,
                             textarea:visible,
                             select:visible
-                        `)
-                        .count()
-                        .catch(
-                            () => 0
-                        );
+                        `,
+        )
+        .count()
+        .catch(() => 0);
 
+      console.log({
+        index,
 
-                console.log({
-                    index,
+        url: frame.url(),
 
-                    url:
-                        frame.url(),
-
-                    visibleFields:
-                        count,
-                });
-            }
-        } catch (
-            error
-        ) {
-            console.error(
-                "\n❌ DEBUG ERROR:",
-                error
-            );
-        } finally {
-            if (session) {
-                await session.close();
-            }
-        }
-    };
-
+        visibleFields: count,
+      });
+    }
+  } catch (error) {
+    console.error('\n❌ DEBUG ERROR:', error);
+  } finally {
+    if (session) {
+      await session.close();
+    }
+  }
+};
 
 run();

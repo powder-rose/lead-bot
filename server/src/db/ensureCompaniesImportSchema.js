@@ -1,83 +1,57 @@
-import {
-    db,
-} from "../db/database.js";
-
+import { db } from '../db/database.js';
 
 const IMPORT_COLUMNS = [
-    {
-        name:
-            "external_id",
+  {
+    name: 'external_id',
 
-        sql:
-            "TEXT",
-    },
+    sql: 'TEXT',
+  },
 
-    {
-        name:
-            "email",
+  {
+    name: 'email',
 
-        sql:
-            "TEXT",
-    },
+    sql: 'TEXT',
+  },
 
-    {
-        name:
-            "address",
+  {
+    name: 'address',
 
-        sql:
-            "TEXT",
-    },
+    sql: 'TEXT',
+  },
 
-    {
-        name:
-            "subcategory",
+  {
+    name: 'subcategory',
 
-        sql:
-            "TEXT",
-    },
+    sql: 'TEXT',
+  },
 ];
 
-
-export const ensureCompaniesImportSchema =
-    () => {
-        const columns =
-            new Set(
-                db.prepare(`
+export const ensureCompaniesImportSchema = () => {
+  const columns = new Set(
+    db
+      .prepare(
+        `
                     PRAGMA table_info(companies)
-                `)
-                    .all()
-                    .map(
-                        (
-                            column
-                        ) =>
-                            column.name
-                    )
-            );
+                `,
+      )
+      .all()
+      .map(column => column.name),
+  );
 
+  for (const column of IMPORT_COLUMNS) {
+    if (columns.has(column.name)) {
+      continue;
+    }
 
-        for (
-            const column of
-            IMPORT_COLUMNS
-        ) {
-            if (
-                columns.has(
-                    column.name
-                )
-            ) {
-                continue;
-            }
-
-
-            db.exec(`
+    db.exec(`
                 ALTER TABLE companies
                 ADD COLUMN ${column.name} ${column.sql}
             `);
-        }
+  }
 
-
-        db.exec(`
+  db.exec(`
             CREATE INDEX IF NOT EXISTS
                 idx_companies_external_id
             ON companies(external_id);
         `);
-    };
+};

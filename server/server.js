@@ -1,123 +1,71 @@
-import express from "express";
-import cors from "cors";
+import express from 'express';
+import cors from 'cors';
 
-import { PORT } from "./src/constants.js";
+import { PORT } from './src/constants.js';
 
-import companiesRouter
-    from "./src/routes/companies.js";
+import companiesRouter from './src/routes/companies.js';
 
-import scanRouter from "./src/routes/scan.js";
-import testFillRouter from "./src/routes/test-fill.js";
+import scanRouter from './src/routes/scan.js';
+import testFillRouter from './src/routes/test-fill.js';
 
-import companiesImportRouter
-    from "./src/routes/companies-import.js";
+import companiesImportRouter from './src/routes/companies-import.js';
 
-import {
-    closeSharedBrowser,
-} from "./src/browser.js";
+import { closeSharedBrowser } from './src/browser.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.get(
-    "/api/health",
-    (req, res) => {
-        res.json({
-            error: null,
+app.get('/api/health', (req, res) => {
+  res.json({
+    error: null,
 
-            data: {
-                status: "ok",
-            },
-        });
-    }
-);
+    data: {
+      status: 'ok',
+    },
+  });
+});
 
-app.use(
-    "/api/scan",
-    scanRouter
-);
+app.use('/api/scan', scanRouter);
 
-app.use(
-    "/api/test-fill",
-    testFillRouter
-);
-app.use(
-    "/api/companies",
-    companiesRouter
-);
-app.use(
-    "/api/companies/import",
-    companiesImportRouter
-);
+app.use('/api/test-fill', testFillRouter);
+app.use('/api/companies', companiesRouter);
+app.use('/api/companies/import', companiesImportRouter);
 
+const server = app.listen(PORT, () => {
+  console.log(`Server started: http://localhost:${PORT}`);
+});
 
-const server =
-    app.listen(
-        PORT,
-        () => {
-            console.log(
-                `Server started: http://localhost:${PORT}`
-            );
-        }
-    );
+let shuttingDown = false;
 
+const shutdown = async signal => {
+  if (shuttingDown) {
+    return;
+  }
 
-let shuttingDown =
-    false;
+  shuttingDown = true;
 
+  console.log(`Получен ${signal}. Завершаем сервер...`);
 
-const shutdown =
-    async (signal) => {
-        if (shuttingDown) {
-            return;
-        }
+  server.close(async () => {
+    await closeSharedBrowser();
 
-        shuttingDown =
-            true;
+    console.log('LeadBot остановлен корректно');
 
-        console.log(
-            `Получен ${signal}. Завершаем сервер...`
-        );
+    process.exit(0);
+  });
 
-        server.close(
-            async () => {
-                await closeSharedBrowser();
+  /*
+   * Защита на случай зависшего HTTP-запроса.
+   */
+  setTimeout(async () => {
+    await closeSharedBrowser();
 
-                console.log(
-                    "LeadBot остановлен корректно"
-                );
+    process.exit(1);
+  }, 5000).unref();
+};
 
-                process.exit(0);
-            }
-        );
+process.on('SIGINT', () => shutdown('SIGINT'));
 
-        /*
-         * Защита на случай зависшего HTTP-запроса.
-         */
-        setTimeout(
-            async () => {
-                await closeSharedBrowser();
-
-                process.exit(1);
-            },
-            5000
-        ).unref();
-    };
-
-
-process.on(
-    "SIGINT",
-    () => shutdown(
-        "SIGINT"
-    )
-);
-
-
-process.on(
-    "SIGTERM",
-    () => shutdown(
-        "SIGTERM"
-    )
-);  
+process.on('SIGTERM', () => shutdown('SIGTERM'));

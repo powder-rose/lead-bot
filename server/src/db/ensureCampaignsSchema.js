@@ -1,42 +1,37 @@
-import { db } from "../db/database.js";
+import { db } from '../db/database.js';
 
-const CAMPAIGN_STATUSES = [
-    "draft",
-    "ready",
-    "running",
-    "paused",
-    "completed",
-];
+const CAMPAIGN_STATUSES = ['draft', 'ready', 'running', 'paused', 'completed'];
 
 const COMPANY_PROCESSING_STATUSES = [
-    "pending",
-    "scanning",
-    "form_found",
-    "no_form",
-    "no_site",
-    "error",
-    "test_filled",
-    "sent",
-    "skipped",
+  'pending',
+  'scanning',
+  'form_found',
+  'no_form',
+  'no_site',
+  'error',
+  'test_filled',
+  'sent',
+  'skipped',
 ];
 
 const addColumnIfMissing = (tableName, columnName, definition) => {
-    const columns = new Set(
-        db.prepare(`PRAGMA table_info(${tableName})`)
-            .all()
-            .map((column) => column.name)
-    );
+  const columns = new Set(
+    db
+      .prepare(`PRAGMA table_info(${tableName})`)
+      .all()
+      .map(column => column.name),
+  );
 
-    if (!columns.has(columnName)) {
-        db.exec(`
+  if (!columns.has(columnName)) {
+    db.exec(`
             ALTER TABLE ${tableName}
             ADD COLUMN ${columnName} ${definition}
         `);
-    }
+  }
 };
 
 export const ensureCampaignsSchema = () => {
-    db.exec(`
+  db.exec(`
         CREATE TABLE IF NOT EXISTS campaigns (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -45,7 +40,7 @@ export const ensureCampaignsSchema = () => {
             sender_email TEXT,
             message TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'draft'
-                CHECK (status IN (${CAMPAIGN_STATUSES.map((status) => `'${status}'`).join(", ")})),
+                CHECK (status IN (${CAMPAIGN_STATUSES.map(status => `'${status}'`).join(', ')})),
             selection_json TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -62,7 +57,7 @@ export const ensureCampaignsSchema = () => {
             region TEXT,
             category TEXT,
             processing_status TEXT NOT NULL DEFAULT 'pending'
-                CHECK (processing_status IN (${COMPANY_PROCESSING_STATUSES.map((status) => `'${status}'`).join(", ")})),
+                CHECK (processing_status IN (${COMPANY_PROCESSING_STATUSES.map(status => `'${status}'`).join(', ')})),
             scan_error TEXT,
             created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -70,21 +65,21 @@ export const ensureCampaignsSchema = () => {
         );
     `);
 
-    /*
-     * Эти колонки добавляются безопасно и в уже существующую базу,
-     * созданную предыдущим модулем кампаний.
-     */
-    addColumnIfMissing("campaigns", "scan_started_at", "TEXT");
-    addColumnIfMissing("campaigns", "scan_finished_at", "TEXT");
+  /*
+   * Эти колонки добавляются безопасно и в уже существующую базу,
+   * созданную предыдущим модулем кампаний.
+   */
+  addColumnIfMissing('campaigns', 'scan_started_at', 'TEXT');
+  addColumnIfMissing('campaigns', 'scan_finished_at', 'TEXT');
 
-    addColumnIfMissing("campaign_companies", "scan_page_url", "TEXT");
-    addColumnIfMissing("campaign_companies", "scan_forms_count", "INTEGER NOT NULL DEFAULT 0");
-    addColumnIfMissing("campaign_companies", "best_form_score", "INTEGER NOT NULL DEFAULT 0");
-    addColumnIfMissing("campaign_companies", "scan_forms_json", "TEXT");
-    addColumnIfMissing("campaign_companies", "has_captcha", "INTEGER NOT NULL DEFAULT 0");
-    addColumnIfMissing("campaign_companies", "scanned_at", "TEXT");
+  addColumnIfMissing('campaign_companies', 'scan_page_url', 'TEXT');
+  addColumnIfMissing('campaign_companies', 'scan_forms_count', 'INTEGER NOT NULL DEFAULT 0');
+  addColumnIfMissing('campaign_companies', 'best_form_score', 'INTEGER NOT NULL DEFAULT 0');
+  addColumnIfMissing('campaign_companies', 'scan_forms_json', 'TEXT');
+  addColumnIfMissing('campaign_companies', 'has_captcha', 'INTEGER NOT NULL DEFAULT 0');
+  addColumnIfMissing('campaign_companies', 'scanned_at', 'TEXT');
 
-    db.exec(`
+  db.exec(`
         CREATE INDEX IF NOT EXISTS idx_campaigns_status
             ON campaigns(status);
 

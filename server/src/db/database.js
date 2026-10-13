@@ -1,65 +1,28 @@
-import Database from "better-sqlite3";
+import Database from 'better-sqlite3';
 
-import fs from "node:fs";
-import path from "node:path";
-import {
-    fileURLToPath,
-} from "node:url";
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const __filename = fileURLToPath(import.meta.url);
 
-const __filename =
-    fileURLToPath(
-        import.meta.url
-    );
+const __dirname = path.dirname(__filename);
 
-const __dirname =
-    path.dirname(
-        __filename
-    );
+const dataDirectory = path.resolve(__dirname, '../../data');
 
-
-const dataDirectory =
-    path.resolve(
-        __dirname,
-        "../../data"
-    );
-
-
-if (
-    !fs.existsSync(
-        dataDirectory
-    )
-) {
-    fs.mkdirSync(
-        dataDirectory,
-        {
-            recursive: true,
-        }
-    );
+if (!fs.existsSync(dataDirectory)) {
+  fs.mkdirSync(dataDirectory, {
+    recursive: true,
+  });
 }
 
+const databasePath = path.join(dataDirectory, 'leadbot.db');
 
-const databasePath =
-    path.join(
-        dataDirectory,
-        "leadbot.db"
-    );
+export const db = new Database(databasePath);
 
+db.pragma('journal_mode = WAL');
 
-export const db =
-    new Database(
-        databasePath
-    );
-
-
-db.pragma(
-    "journal_mode = WAL"
-);
-
-db.pragma(
-    "foreign_keys = ON"
-);
-
+db.pragma('foreign_keys = ON');
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS companies (
@@ -116,7 +79,4 @@ db.exec(`
     ON companies(city);
 `);
 
-
-console.log(
-    `SQLite ready: ${databasePath}`
-);
+console.log(`SQLite ready: ${databasePath}`);
