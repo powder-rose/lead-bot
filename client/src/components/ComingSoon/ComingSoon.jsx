@@ -1,36 +1,23 @@
 import {
-    ComingSoonCard,
-    ComingSoonIcon,
-    ComingSoonKicker,
-    ComingSoonTitle,
-    ComingSoonText,
-} from "./ComingSoon.styles.js";
+  ComingSoonCard,
+  ComingSoonIcon,
+  ComingSoonKicker,
+  ComingSoonTitle,
+  ComingSoonText,
+} from './ComingSoon.styles.js';
 
+export const ComingSoon = ({ kicker = 'СЛЕДУЮЩИЙ МОДУЛЬ', title, children }) => {
+  return (
+    <ComingSoonCard>
+      <ComingSoonIcon>+</ComingSoonIcon>
 
-export const ComingSoon = ({
-    kicker = "СЛЕДУЮЩИЙ МОДУЛЬ",
-    title,
-    children,
-}) => {
-    return (
-        <ComingSoonCard>
-            <ComingSoonIcon>
-                +
-            </ComingSoonIcon>
+      <div>
+        <ComingSoonKicker>{kicker}</ComingSoonKicker>
 
-            <div>
-                <ComingSoonKicker>
-                    {kicker}
-                </ComingSoonKicker>
+        <ComingSoonTitle>{title}</ComingSoonTitle>
 
-                <ComingSoonTitle>
-                    {title}
-                </ComingSoonTitle>
-
-                <ComingSoonText>
-                    {children}
-                </ComingSoonText>
-            </div>
-        </ComingSoonCard>
-    );
+        <ComingSoonText>{children}</ComingSoonText>
+      </div>
+    </ComingSoonCard>
+  );
 };

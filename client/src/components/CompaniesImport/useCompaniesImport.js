@@ -12,7 +12,7 @@ import {
 const SAVED_CATEGORIES_KEY = 'leadbot:selectedCategories';
 const SAVED_SUBCATEGORIES_KEY = 'leadbot:selectedSubcategories';
 
-const getSavedValues = (key) => {
+const getSavedValues = key => {
   try {
     const value = JSON.parse(localStorage.getItem(key) || '[]');
     return Array.isArray(value) ? value : [];
@@ -21,11 +21,9 @@ const getSavedValues = (key) => {
   }
 };
 
-const matchesSearch = (value, search) =>
-  value.toLowerCase().includes(search.trim().toLowerCase());
+const matchesSearch = (value, search) => value.toLowerCase().includes(search.trim().toLowerCase());
 
-export const formatImportNumber = (value) =>
-  Number(value || 0).toLocaleString('ru-RU');
+export const formatImportNumber = value => Number(value || 0).toLocaleString('ru-RU');
 
 export function useCompaniesImport() {
   const inputRef = useRef(null);
@@ -52,37 +50,24 @@ export function useCompaniesImport() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    localStorage.setItem(
-      SAVED_CATEGORIES_KEY,
-      JSON.stringify(selectedCategories),
-    );
+    localStorage.setItem(SAVED_CATEGORIES_KEY, JSON.stringify(selectedCategories));
   }, [selectedCategories]);
 
   useEffect(() => {
-    localStorage.setItem(
-      SAVED_SUBCATEGORIES_KEY,
-      JSON.stringify(selectedSubcategories),
-    );
+    localStorage.setItem(SAVED_SUBCATEGORIES_KEY, JSON.stringify(selectedSubcategories));
   }, [selectedSubcategories]);
 
   const visibleCategories = useMemo(
-    () =>
-      (rubrics?.categories || []).filter((item) =>
-        matchesSearch(item.name, rubricSearch),
-      ),
+    () => (rubrics?.categories || []).filter(item => matchesSearch(item.name, rubricSearch)),
     [rubrics, rubricSearch],
   );
 
   const visibleSubcategories = useMemo(
-    () =>
-      (rubrics?.subcategories || []).filter((item) =>
-        matchesSearch(item.name, rubricSearch),
-      ),
+    () => (rubrics?.subcategories || []).filter(item => matchesSearch(item.name, rubricSearch)),
     [rubrics, rubricSearch],
   );
 
-  const selectedCount =
-    selectedCategories.length + selectedSubcategories.length;
+  const selectedCount = selectedCategories.length + selectedSubcategories.length;
 
   const openFilePicker = () => {
     inputRef.current?.click();
@@ -100,7 +85,7 @@ export function useCompaniesImport() {
     setSelectionAnalysis(null);
   };
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = async event => {
     const file = event.target.files?.[0];
 
     if (!file) {
@@ -156,19 +141,11 @@ export function useCompaniesImport() {
       const data = await getCompaniesImportRubrics(preview.importId);
       setRubrics(data);
 
-      const categoryNames = new Set(
-        (data.categories || []).map((item) => item.name),
-      );
-      const subcategoryNames = new Set(
-        (data.subcategories || []).map((item) => item.name),
-      );
+      const categoryNames = new Set((data.categories || []).map(item => item.name));
+      const subcategoryNames = new Set((data.subcategories || []).map(item => item.name));
 
-      setSelectedCategories((current) =>
-        current.filter((item) => categoryNames.has(item)),
-      );
-      setSelectedSubcategories((current) =>
-        current.filter((item) => subcategoryNames.has(item)),
-      );
+      setSelectedCategories(current => current.filter(item => categoryNames.has(item)));
+      setSelectedSubcategories(current => current.filter(item => subcategoryNames.has(item)));
     } catch (requestError) {
       setError(requestError.message);
     } finally {
@@ -200,11 +177,7 @@ export function useCompaniesImport() {
   };
 
   const handleImport = async () => {
-    if (
-      !preview?.importId ||
-      !selectionAnalysis ||
-      selectionAnalysis.readyToImport <= 0
-    ) {
+    if (!preview?.importId || !selectionAnalysis || selectionAnalysis.readyToImport <= 0) {
       return;
     }
 
@@ -231,20 +204,18 @@ export function useCompaniesImport() {
   };
 
   const toggleValue = (value, setter) => {
-    setter((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
+    setter(current =>
+      current.includes(value) ? current.filter(item => item !== value) : [...current, value],
     );
 
     setSelectionAnalysis(null);
   };
 
-  const toggleCategory = (value) => {
+  const toggleCategory = value => {
     toggleValue(value, setSelectedCategories);
   };
 
-  const toggleSubcategory = (value) => {
+  const toggleSubcategory = value => {
     toggleValue(value, setSelectedSubcategories);
   };
 

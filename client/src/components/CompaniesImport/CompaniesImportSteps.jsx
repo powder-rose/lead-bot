@@ -28,14 +28,8 @@ export function ImportPreviewStep({ preview }) {
           <StatLabel>строка заголовков</StatLabel>
         </StatCard>
 
-        <Stat
-          value={preview.previewStats?.withWebsite}
-          label="с сайтом в preview"
-        />
-        <Stat
-          value={preview.previewStats?.withoutWebsite}
-          label="без сайта в preview"
-        />
+        <Stat value={preview.previewStats?.withWebsite} label="с сайтом в preview" />
+        <Stat value={preview.previewStats?.withoutWebsite} label="без сайта в preview" />
       </StatsGrid>
 
       <PreviewTableWrapper>
@@ -50,7 +44,7 @@ export function ImportPreviewStep({ preview }) {
           </thead>
 
           <tbody>
-            {preview.preview?.slice(0, 15).map((company) => (
+            {preview.preview?.slice(0, 15).map(company => (
               <tr key={company.rowNumber}>
                 <td>
                   <strong>{company.name}</strong>
@@ -72,23 +66,12 @@ export function ImportResultStep({ importResult }) {
     <>
       <StatsGrid>
         <Stat value={importResult.imported} label="компаний импортировано" />
-        <Stat
-          value={importResult.skippedExisting}
-          label="пропущено: уже были в LeadBot"
-        />
-        <Stat
-          value={importResult.duplicateRows}
-          label="дублей объединено по домену"
-        />
-        <Stat
-          value={importResult.totalCompanies}
-          label="всего компаний теперь в базе"
-        />
+        <Stat value={importResult.skippedExisting} label="пропущено: уже были в LeadBot" />
+        <Stat value={importResult.duplicateRows} label="дублей объединено по домену" />
+        <Stat value={importResult.totalCompanies} label="всего компаний теперь в базе" />
       </StatsGrid>
 
-      <SelectedInfo>
-        Импорт завершён успешно. Новые компании получили статус «Новая».
-      </SelectedInfo>
+      <SelectedInfo>Импорт завершён успешно. Новые компании получили статус «Новая».</SelectedInfo>
     </>
   );
 }
@@ -101,46 +84,24 @@ export function SelectionAnalysisStep({ selectionAnalysis, selectedCount }) {
           value={selectionAnalysis.matchedRows}
           label="строк соответствуют выбранным рубрикам"
         />
-        <Stat
-          value={selectionAnalysis.validWebsiteRows}
-          label="строк с пригодным сайтом"
-        />
+        <Stat value={selectionAnalysis.validWebsiteRows} label="строк с пригодным сайтом" />
         <Stat value={selectionAnalysis.withoutWebsite} label="без сайта" />
         <Stat
           value={selectionAnalysis.excludedWebsiteRows}
           label="исключено сервисов и нецелевых доменов"
         />
-        <Stat
-          value={selectionAnalysis.invalidWebsiteRows}
-          label="некорректных сайтов"
-        />
-        <Stat
-          value={selectionAnalysis.uniqueDomains}
-          label="уникальных пригодных доменов"
-        />
-        <Stat
-          value={selectionAnalysis.duplicateRows}
-          label="дублей по домену"
-        />
-        <Stat
-          value={selectionAnalysis.existingDomains}
-          label="уже есть в LeadBot"
-        />
-        <Stat
-          value={selectionAnalysis.readyToImport}
-          label="реально готово к импорту"
-        />
+        <Stat value={selectionAnalysis.invalidWebsiteRows} label="некорректных сайтов" />
+        <Stat value={selectionAnalysis.uniqueDomains} label="уникальных пригодных доменов" />
+        <Stat value={selectionAnalysis.duplicateRows} label="дублей по домену" />
+        <Stat value={selectionAnalysis.existingDomains} label="уже есть в LeadBot" />
+        <Stat value={selectionAnalysis.readyToImport} label="реально готово к импорту" />
       </StatsGrid>
 
-      <SelectedInfo>
-        Выбрано рубрик и подрубрик: {selectedCount}
-      </SelectedInfo>
+      <SelectedInfo>Выбрано рубрик и подрубрик: {selectedCount}</SelectedInfo>
 
       {selectionAnalysis.topExcludedDomains?.length > 0 && (
         <>
-          <ImportSubtitle>
-            Исключённые домены в выбранной выборке
-          </ImportSubtitle>
+          <ImportSubtitle>Исключённые домены в выбранной выборке</ImportSubtitle>
 
           <PreviewTableWrapper>
             <PreviewTable>
@@ -151,7 +112,7 @@ export function SelectionAnalysisStep({ selectionAnalysis, selectedCount }) {
                 </tr>
               </thead>
               <tbody>
-                {selectionAnalysis.topExcludedDomains.map((item) => (
+                {selectionAnalysis.topExcludedDomains.map(item => (
                   <tr key={item.domain}>
                     <td>
                       <strong>{item.domain}</strong>
@@ -172,14 +133,8 @@ export function ImportAnalysisStep({ analysis }) {
   return (
     <StatsGrid>
       <Stat value={analysis.totalRows} label="всего компаний" />
-      <Stat
-        value={analysis.validWebsiteRows}
-        label="строк с рабочим адресом сайта"
-      />
-      <Stat
-        value={analysis.withoutWebsite}
-        label="действительно без сайта"
-      />
+      <Stat value={analysis.validWebsiteRows} label="строк с рабочим адресом сайта" />
+      <Stat value={analysis.withoutWebsite} label="действительно без сайта" />
       <Stat value={analysis.invalidWebsiteRows} label="некорректный сайт" />
       <Stat
         value={analysis.excludedWebsiteRows}
@@ -188,10 +143,7 @@ export function ImportAnalysisStep({ analysis }) {
       <Stat value={analysis.uniqueDomains} label="уникальных доменов" />
       <Stat value={analysis.duplicateRows} label="дублей по домену" />
       <Stat value={analysis.existingDomains} label="уже есть в LeadBot" />
-      <Stat
-        value={analysis.readyToImport}
-        label="пригодных уникальных доменов"
-      />
+      <Stat value={analysis.readyToImport} label="пригодных уникальных доменов" />
     </StatsGrid>
   );
 }

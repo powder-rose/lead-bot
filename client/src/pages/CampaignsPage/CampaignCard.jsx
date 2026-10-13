@@ -48,9 +48,7 @@ export function CampaignCard({
 
       <CampaignName>{campaign.name}</CampaignName>
 
-      <CampaignText title={campaign.message}>
-        {campaign.message}
-      </CampaignText>
+      <CampaignText title={campaign.message}>{campaign.message}</CampaignText>
 
       <ProgressMeta>
         <span>
@@ -97,31 +95,19 @@ export function CampaignCard({
         </ActionButton>
 
         {campaign.status === 'draft' && (
-          <ActionButton
-            type="button"
-            onClick={() => onStatus(campaign, 'ready')}
-            disabled={busy}
-          >
+          <ActionButton type="button" onClick={() => onStatus(campaign, 'ready')} disabled={busy}>
             Готова к проверке
           </ActionButton>
         )}
 
         {campaign.status === 'running' ? (
-          <ActionButton
-            type="button"
-            onClick={() => onPause(campaign)}
-            disabled={busy}
-          >
+          <ActionButton type="button" onClick={() => onPause(campaign)} disabled={busy}>
             {busy ? 'Ставим на паузу...' : 'Пауза'}
           </ActionButton>
         ) : (
           campaign.pendingCount > 0 &&
           campaign.status !== 'draft' && (
-            <ActionButton
-              type="button"
-              onClick={() => onStart(campaign)}
-              disabled={busy}
-            >
+            <ActionButton type="button" onClick={() => onStart(campaign)} disabled={busy}>
               {busy
                 ? 'Запускаем...'
                 : campaign.status === 'paused'
@@ -132,11 +118,7 @@ export function CampaignCard({
         )}
 
         {campaign.errorCount > 0 && campaign.status !== 'running' && (
-          <SecondaryButton
-            type="button"
-            onClick={() => onRetryErrors(campaign)}
-            disabled={busy}
-          >
+          <SecondaryButton type="button" onClick={() => onRetryErrors(campaign)} disabled={busy}>
             Повторить ошибки ({formatCampaignNumber(campaign.errorCount)})
           </SecondaryButton>
         )}

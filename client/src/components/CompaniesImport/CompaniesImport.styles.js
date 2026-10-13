@@ -1,581 +1,454 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
-import {
-    PINK,
-    PINK_DARK,
-    TEXT,
-    MUTED,
-    BORDER,
-} from "../../styles/theme.js";
+import { PINK, PINK_DARK, TEXT, MUTED, BORDER } from '../../styles/theme.js';
 
+export const ImportButton = styled.button`
+  height: 44px;
+  padding: 0 16px;
 
-export const ImportButton =
-    styled.button`
-        height: 44px;
-        padding: 0 16px;
+  border: 1px solid ${BORDER};
 
-        border: 1px solid
-            ${BORDER};
+  border-radius: 12px;
 
-        border-radius: 12px;
+  background: #ffffff;
+  color: ${TEXT};
 
-        background: #ffffff;
-        color: ${TEXT};
+  cursor: pointer;
 
-        cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
 
-        font-size: 10px;
-        font-weight: 600;
+  white-space: nowrap;
 
-        white-space: nowrap;
+  &:hover {
+    border-color: ${PINK};
+  }
 
-        &:hover {
-            border-color:
-                ${PINK};
-        }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+`;
 
-        &:disabled {
-            opacity: 0.5;
-            cursor: default;
-        }
-    `;
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
 
+export const ImportOverlay = styled.div`
+  position: fixed;
+  z-index: 1100;
 
-export const HiddenFileInput =
-    styled.input`
-        display: none;
-    `;
+  inset: 0;
 
+  padding: 30px;
 
-export const ImportOverlay =
-    styled.div`
-        position: fixed;
-        z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-        inset: 0;
+  background: rgba(20, 20, 20, 0.3);
 
-        padding: 30px;
+  backdrop-filter: blur(3px);
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
+  @media (max-width: 600px) {
+    padding: 12px;
+  }
+`;
 
-        background:
-            rgba(
-                20,
-                20,
-                20,
-                0.3
-            );
+export const ImportModal = styled.div`
+  width: min(980px, 100%);
 
-        backdrop-filter:
-            blur(3px);
+  max-height: calc(100vh - 50px);
 
-        @media (max-width: 600px) {
-            padding: 12px;
-        }
-    `;
+  overflow-y: auto;
 
+  padding: 26px;
 
-export const ImportModal =
-    styled.div`
-        width: min(
-            980px,
-            100%
-        );
+  border: 1px solid ${BORDER};
 
-        max-height:
-            calc(
-                100vh - 50px
-            );
+  border-radius: 22px;
 
-        overflow-y: auto;
+  background: #ffffff;
 
-        padding: 26px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.15);
 
-        border: 1px solid
-            ${BORDER};
+  @media (max-width: 600px) {
+    padding: 18px;
+  }
+`;
 
-        border-radius: 22px;
+export const ImportHeader = styled.div`
+  margin-bottom: 22px;
 
-        background: #ffffff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+`;
 
-        box-shadow:
-            0 30px 90px
-            rgba(
-                0,
-                0,
-                0,
-                0.15
-            );
+export const ImportTitle = styled.h2`
+  margin: 0;
 
-        @media (max-width: 600px) {
-            padding: 18px;
-        }
-    `;
+  color: ${TEXT};
 
+  font-size: 22px;
+  font-weight: 650;
 
-export const ImportHeader =
-    styled.div`
-        margin-bottom: 22px;
+  letter-spacing: -0.5px;
+`;
 
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 20px;
-    `;
+export const ImportSubtitle = styled.p`
+  margin: 14px 0 8px;
 
+  color: ${MUTED};
 
-export const ImportTitle =
-    styled.h2`
-        margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+`;
 
-        color: ${TEXT};
+export const CloseButton = styled.button`
+  width: 34px;
+  height: 34px;
 
-        font-size: 22px;
-        font-weight: 650;
+  flex: 0 0 auto;
 
-        letter-spacing: -0.5px;
-    `;
+  border: 0;
+  border-radius: 10px;
 
+  background: #f5f5f5;
+  color: #777777;
 
-export const ImportSubtitle =
-    styled.p`
-        margin: 14px 0 8px;
+  cursor: pointer;
 
-        color: ${MUTED};
+  font-size: 20px;
 
-        font-size: 10px;
-        line-height: 1.5;
-    `;
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+`;
 
+export const FileInfo = styled.div`
+  margin-bottom: 18px;
+  padding: 13px 15px;
 
-export const CloseButton =
-    styled.button`
-        width: 34px;
-        height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 
-        flex: 0 0 auto;
+  border-radius: 12px;
 
-        border: 0;
-        border-radius: 10px;
+  background: #f8f8f8;
 
-        background: #f5f5f5;
-        color: #777777;
+  strong {
+    color: ${TEXT};
+    font-size: 11px;
+  }
 
-        cursor: pointer;
+  span {
+    color: ${MUTED};
+    font-size: 9px;
+  }
+`;
 
-        font-size: 20px;
+export const StatsGrid = styled.div`
+  margin-bottom: 20px;
 
-        &:disabled {
-            opacity: 0.45;
-            cursor: default;
-        }
-    `;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 
+  gap: 10px;
+`;
 
-export const FileInfo =
-    styled.div`
-        margin-bottom: 18px;
-        padding: 13px 15px;
+export const StatCard = styled.div`
+  padding: 15px;
 
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
+  border: 1px solid ${BORDER};
 
-        border-radius: 12px;
+  border-radius: 12px;
 
-        background: #f8f8f8;
+  background: #ffffff;
+`;
 
-        strong {
-            color: ${TEXT};
-            font-size: 11px;
-        }
+export const StatValue = styled.strong`
+  display: block;
 
-        span {
-            color: ${MUTED};
-            font-size: 9px;
-        }
-    `;
+  color: ${TEXT};
 
+  font-size: 18px;
+  font-weight: 650;
+`;
 
-export const StatsGrid =
-    styled.div`
-        margin-bottom: 20px;
+export const StatLabel = styled.span`
+  display: block;
 
-        display: grid;
-        grid-template-columns:
-            repeat(
-                auto-fit,
-                minmax(
-                    150px,
-                    1fr
-                )
-            );
+  margin-top: 4px;
 
-        gap: 10px;
-    `;
+  color: ${MUTED};
 
+  font-size: 9px;
+  line-height: 1.4;
+`;
 
-export const StatCard =
-    styled.div`
-        padding: 15px;
+export const PreviewTableWrapper = styled.div`
+  overflow-x: auto;
 
-        border: 1px solid
-            ${BORDER};
+  border: 1px solid ${BORDER};
 
-        border-radius: 12px;
+  border-radius: 14px;
+`;
 
-        background: #ffffff;
-    `;
+export const PreviewTable = styled.table`
+  width: 100%;
 
+  border-collapse: collapse;
 
-export const StatValue =
-    styled.strong`
-        display: block;
+  th,
+  td {
+    padding: 11px 13px;
 
-        color: ${TEXT};
+    border-bottom: 1px solid ${BORDER};
 
-        font-size: 18px;
-        font-weight: 650;
-    `;
+    text-align: left;
+    vertical-align: top;
+  }
 
+  th {
+    background: #fafafa;
 
-export const StatLabel =
-    styled.span`
-        display: block;
+    color: ${MUTED};
 
-        margin-top: 4px;
+    font-size: 8px;
+    font-weight: 600;
 
-        color: ${MUTED};
+    text-transform: uppercase;
+  }
 
-        font-size: 9px;
-        line-height: 1.4;
-    `;
+  td {
+    max-width: 300px;
 
+    color: #666666;
 
-export const PreviewTableWrapper =
-    styled.div`
-        overflow-x: auto;
+    font-size: 9px;
+    line-height: 1.5;
+  }
 
-        border: 1px solid
-            ${BORDER};
+  strong {
+    color: ${TEXT};
+    font-weight: 600;
+  }
 
-        border-radius: 14px;
-    `;
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+`;
 
+export const ImportError = styled.div`
+  margin-top: 14px;
+  padding: 10px 13px;
 
-export const PreviewTable =
-    styled.table`
-        width: 100%;
+  border-radius: 10px;
 
-        border-collapse: collapse;
+  background: #fff0f2;
+  color: #a85365;
 
-        th,
-        td {
-            padding: 11px 13px;
+  font-size: 10px;
+`;
 
-            border-bottom:
-                1px solid
-                ${BORDER};
+export const RubricsHeader = styled.div`
+  margin-bottom: 14px;
 
-            text-align: left;
-            vertical-align: top;
-        }
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
 
-        th {
-            background: #fafafa;
+  strong {
+    display: block;
 
-            color: ${MUTED};
+    color: ${TEXT};
 
-            font-size: 8px;
-            font-weight: 600;
+    font-size: 11px;
+    font-weight: 600;
+  }
 
-            text-transform: uppercase;
-        }
+  @media (max-width: 700px) {
+    align-items: stretch;
+    flex-direction: column;
+  }
+`;
 
-        td {
-            max-width: 300px;
+export const SelectedInfo = styled.span`
+  display: block;
 
-            color: #666666;
+  margin-top: 5px;
 
-            font-size: 9px;
-            line-height: 1.5;
-        }
+  color: ${PINK_DARK};
 
-        strong {
-            color: ${TEXT};
-            font-weight: 600;
-        }
+  font-size: 9px;
+  font-weight: 600;
+`;
 
-        tbody tr:last-child
-            td {
-            border-bottom: 0;
-        }
-    `;
+export const RubricsSearch = styled.input`
+  width: min(370px, 100%);
 
+  height: 42px;
 
-export const ImportError =
-    styled.div`
-        margin-top: 14px;
-        padding: 10px 13px;
+  padding: 0 13px;
 
-        border-radius: 10px;
+  border: 1px solid ${BORDER};
 
-        background: #fff0f2;
-        color: #a85365;
+  border-radius: 11px;
 
-        font-size: 10px;
-    `;
+  outline: none;
 
+  background: #ffffff;
+  color: ${TEXT};
 
-export const RubricsHeader =
-    styled.div`
-        margin-bottom: 14px;
+  font-size: 10px;
 
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 18px;
+  &:focus {
+    border-color: ${PINK};
 
-        strong {
-            display: block;
+    box-shadow: 0 0 0 4px rgba(243, 167, 184, 0.12);
+  }
+`;
 
-            color: ${TEXT};
+export const RubricsColumns = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
-            font-size: 11px;
-            font-weight: 600;
-        }
+  gap: 12px;
 
-        @media (max-width: 700px) {
-            align-items: stretch;
-            flex-direction: column;
-        }
-    `;
+  @media (max-width: 760px) {
+    grid-template-columns: 1fr;
+  }
+`;
 
+export const RubricsSection = styled.section`
+  min-width: 0;
 
-export const SelectedInfo =
-    styled.span`
-        display: block;
+  border: 1px solid ${BORDER};
 
-        margin-top: 5px;
+  border-radius: 14px;
 
-        color: ${PINK_DARK};
+  overflow: hidden;
 
-        font-size: 9px;
-        font-weight: 600;
-    `;
+  h3 {
+    margin: 0;
+    padding: 12px 14px;
 
+    border-bottom: 1px solid ${BORDER};
 
-export const RubricsSearch =
-    styled.input`
-        width: min(
-            370px,
-            100%
-        );
+    background: #fafafa;
 
-        height: 42px;
+    color: ${TEXT};
 
-        padding: 0 13px;
+    font-size: 10px;
+    font-weight: 650;
+  }
+`;
 
-        border: 1px solid
-            ${BORDER};
+export const RubricList = styled.div`
+  max-height: 430px;
 
-        border-radius: 11px;
+  overflow-y: auto;
+`;
 
-        outline: none;
+export const RubricItem = styled.label`
+  min-height: 42px;
 
-        background: #ffffff;
-        color: ${TEXT};
+  padding: 9px 12px;
 
-        font-size: 10px;
+  display: grid;
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
 
-        &:focus {
-            border-color:
-                ${PINK};
+  align-items: center;
+  gap: 9px;
 
-            box-shadow:
-                0 0 0 4px
-                rgba(
-                    243,
-                    167,
-                    184,
-                    0.12
-                );
-        }
-    `;
+  border-bottom: 1px solid ${BORDER};
 
+  cursor: pointer;
 
-export const RubricsColumns =
-    styled.div`
-        display: grid;
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(
-                    0,
-                    1fr
-                )
-            );
+  color: #555555;
 
-        gap: 12px;
+  font-size: 9px;
+  line-height: 1.35;
 
-        @media (max-width: 760px) {
-            grid-template-columns:
-                1fr;
-        }
-    `;
+  &:last-child {
+    border-bottom: 0;
+  }
 
+  &:hover {
+    background: #fffafb;
+  }
+`;
 
-export const RubricsSection =
-    styled.section`
-        min-width: 0;
+export const RubricCheckbox = styled.input`
+  width: 14px;
+  height: 14px;
 
-        border: 1px solid
-            ${BORDER};
+  accent-color: ${PINK_DARK};
+`;
 
-        border-radius: 14px;
+export const RubricCount = styled.span`
+  color: ${MUTED};
 
-        overflow: hidden;
+  font-size: 8px;
 
-        h3 {
-            margin: 0;
-            padding: 12px 14px;
+  white-space: nowrap;
+`;
 
-            border-bottom:
-                1px solid
-                ${BORDER};
+export const ModalActions = styled.div`
+  margin-top: 20px;
 
-            background: #fafafa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+`;
 
-            color: ${TEXT};
+export const CancelButton = styled.button`
+  height: 42px;
+  padding: 0 16px;
 
-            font-size: 10px;
-            font-weight: 650;
-        }
-    `;
+  border: 1px solid ${BORDER};
 
+  border-radius: 11px;
 
-export const RubricList =
-    styled.div`
-        max-height: 430px;
+  background: #ffffff;
 
-        overflow-y: auto;
-    `;
+  cursor: pointer;
 
+  font-size: 10px;
+  font-weight: 600;
 
-export const RubricItem =
-    styled.label`
-        min-height: 42px;
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+`;
 
-        padding: 9px 12px;
+export const ContinueButton = styled.button`
+  height: 42px;
+  padding: 0 18px;
 
-        display: grid;
-        grid-template-columns:
-            auto
-            minmax(
-                0,
-                1fr
-            )
-            auto;
+  border: 0;
+  border-radius: 11px;
 
-        align-items: center;
-        gap: 9px;
+  background: ${TEXT};
+  color: #ffffff;
 
-        border-bottom:
-            1px solid
-            ${BORDER};
+  cursor: pointer;
 
-        cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
 
-        color: #555555;
-
-        font-size: 9px;
-        line-height: 1.35;
-
-        &:last-child {
-            border-bottom: 0;
-        }
-
-        &:hover {
-            background: #fffafb;
-        }
-    `;
-
-
-export const RubricCheckbox =
-    styled.input`
-        width: 14px;
-        height: 14px;
-
-        accent-color:
-            ${PINK_DARK};
-    `;
-
-
-export const RubricCount =
-    styled.span`
-        color: ${MUTED};
-
-        font-size: 8px;
-
-        white-space: nowrap;
-    `;
-
-
-export const ModalActions =
-    styled.div`
-        margin-top: 20px;
-
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-    `;
-
-
-export const CancelButton =
-    styled.button`
-        height: 42px;
-        padding: 0 16px;
-
-        border: 1px solid
-            ${BORDER};
-
-        border-radius: 11px;
-
-        background: #ffffff;
-
-        cursor: pointer;
-
-        font-size: 10px;
-        font-weight: 600;
-
-        &:disabled {
-            opacity: 0.5;
-            cursor: default;
-        }
-    `;
-
-
-export const ContinueButton =
-    styled.button`
-        height: 42px;
-        padding: 0 18px;
-
-        border: 0;
-        border-radius: 11px;
-
-        background: ${TEXT};
-        color: #ffffff;
-
-        cursor: pointer;
-
-        font-size: 10px;
-        font-weight: 600;
-
-        &:disabled {
-            opacity: 0.35;
-            cursor: default;
-        }
-    `;
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+`;

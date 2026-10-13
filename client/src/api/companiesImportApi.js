@@ -1,225 +1,113 @@
-import {
-    API_URL,
-} from "../constants/api.js";
+import { API_URL } from '../constants/api.js';
 
+const readResponse = async response => {
+  const data = await response.json();
 
-const readResponse =
-    async (
-        response
-    ) => {
-        const data =
-            await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(data.error || 'Ошибка импорта');
+  }
 
+  return data.data;
+};
 
-        if (
-            !response.ok ||
-            data.error
-        ) {
-            throw new Error(
-                data.error ||
-                "Ошибка импорта"
-            );
-        }
+export const previewCompaniesImport = async file => {
+  const formData = new FormData();
 
+  formData.append('file', file);
 
-        return data.data;
-    };
+  const response = await fetch(`${API_URL}/api/companies/import/preview`, {
+    method: 'POST',
 
+    body: formData,
+  });
 
-export const previewCompaniesImport =
-    async (
-        file
-    ) => {
-        const formData =
-            new FormData();
+  return readResponse(response);
+};
 
+export const analyzeCompaniesImport = async importId => {
+  const response = await fetch(`${API_URL}/api/companies/import/analyze`, {
+    method: 'POST',
 
-        formData.append(
-            "file",
-            file
-        );
+    headers: {
+      'Content-Type': 'application/json',
+    },
 
+    body: JSON.stringify({
+      importId,
+    }),
+  });
 
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/preview`,
-                {
-                    method:
-                        "POST",
+  return readResponse(response);
+};
 
-                    body:
-                        formData,
-                }
-            );
+export const getCompaniesImportRubrics = async importId => {
+  const response = await fetch(`${API_URL}/api/companies/import/rubrics`, {
+    method: 'POST',
 
+    headers: {
+      'Content-Type': 'application/json',
+    },
 
-        return readResponse(
-            response
-        );
-    };
+    body: JSON.stringify({
+      importId,
+    }),
+  });
 
+  return readResponse(response);
+};
 
-export const analyzeCompaniesImport =
-    async (
-        importId
-    ) => {
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/analyze`,
-                {
-                    method:
-                        "POST",
+export const analyzeCompaniesImportSelection = async ({ importId, categories, subcategories }) => {
+  const response = await fetch(`${API_URL}/api/companies/import/selection-preview`, {
+    method: 'POST',
 
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
+    headers: {
+      'Content-Type': 'application/json',
+    },
 
-                    body:
-                        JSON.stringify({
-                            importId,
-                        }),
-                }
-            );
+    body: JSON.stringify({
+      importId,
+      categories,
+      subcategories,
+    }),
+  });
 
+  return readResponse(response);
+};
 
-        return readResponse(
-            response
-        );
-    };
+export const commitCompaniesImport = async ({ importId, categories, subcategories }) => {
+  const response = await fetch(`${API_URL}/api/companies/import/commit`, {
+    method: 'POST',
 
+    headers: {
+      'Content-Type': 'application/json',
+    },
 
-export const getCompaniesImportRubrics =
-    async (
-        importId
-    ) => {
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/rubrics`,
-                {
-                    method:
-                        "POST",
+    body: JSON.stringify({
+      importId,
+      categories,
+      subcategories,
+    }),
+  });
 
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
+  return readResponse(response);
+};
 
-                    body:
-                        JSON.stringify({
-                            importId,
-                        }),
-                }
-            );
+export const discardCompaniesImport = async importId => {
+  if (!importId) {
+    return null;
+  }
 
+  const response = await fetch(`${API_URL}/api/companies/import/discard`, {
+    method: 'POST',
 
-        return readResponse(
-            response
-        );
-    };
+    headers: {
+      'Content-Type': 'application/json',
+    },
 
+    body: JSON.stringify({
+      importId,
+    }),
+  });
 
-export const analyzeCompaniesImportSelection =
-    async ({
-        importId,
-        categories,
-        subcategories,
-    }) => {
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/selection-preview`,
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body:
-                        JSON.stringify({
-                            importId,
-                            categories,
-                            subcategories,
-                        }),
-                }
-            );
-
-
-        return readResponse(
-            response
-        );
-    };
-
-
-
-export const commitCompaniesImport =
-    async ({
-        importId,
-        categories,
-        subcategories,
-    }) => {
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/commit`,
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body:
-                        JSON.stringify({
-                            importId,
-                            categories,
-                            subcategories,
-                        }),
-                }
-            );
-
-
-        return readResponse(
-            response
-        );
-    };
-
-
-export const discardCompaniesImport =
-    async (
-        importId
-    ) => {
-        if (
-            !importId
-        ) {
-            return null;
-        }
-
-
-        const response =
-            await fetch(
-                `${API_URL}/api/companies/import/discard`,
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                    },
-
-                    body:
-                        JSON.stringify({
-                            importId,
-                        }),
-                }
-            );
-
-
-        return readResponse(
-            response
-        );
-    };
+  return readResponse(response);
+};

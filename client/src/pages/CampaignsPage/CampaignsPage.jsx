@@ -2,14 +2,8 @@ import { Content } from '../../App.styles';
 import { Header } from '../../components/Header/Header';
 
 import { CampaignCard } from './CampaignCard';
-import {
-  CampaignDetailsModal,
-  CampaignScanResultModal,
-} from './CampaignModals';
-import {
-  formatCampaignNumber,
-  useCampaigns,
-} from './useCampaigns';
+import { CampaignDetailsModal, CampaignScanResultModal } from './CampaignModals';
+import { formatCampaignNumber, useCampaigns } from './useCampaigns';
 
 import {
   CampaignGrid,
@@ -86,9 +80,7 @@ export function CampaignsPage() {
         ) : campaigns.length === 0 ? (
           <EmptyState>
             <strong>Кампаний пока нет</strong>
-            <span>
-              Перейдите в «База компаний», отметьте нужные компании и создайте кампанию.
-            </span>
+            <span>Перейдите в «База компаний», отметьте нужные компании и создайте кампанию.</span>
           </EmptyState>
         ) : (
           <CampaignGrid>
@@ -119,10 +111,7 @@ export function CampaignsPage() {
         onOpenScanResult={openScanResult}
       />
 
-      <CampaignScanResultModal
-        scanResult={scanResult}
-        onClose={closeScanResult}
-      />
+      <CampaignScanResultModal scanResult={scanResult} onClose={closeScanResult} />
     </>
   );
 }
