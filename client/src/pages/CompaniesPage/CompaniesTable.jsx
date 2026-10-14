@@ -164,8 +164,7 @@ export function CompaniesTable({
       {pagination && pagination.total > 0 && (
         <Pagination>
           <PaginationInfo>
-            Показано{' '}
-            <strong>{(pagination.page - 1) * pagination.limit + 1}</strong>
+            Показано <strong>{(pagination.page - 1) * pagination.limit + 1}</strong>
             {' — '}
             <strong>{Math.min(pagination.page * pagination.limit, pagination.total)}</strong>
             {' из '}

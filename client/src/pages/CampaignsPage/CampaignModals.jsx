@@ -23,10 +23,7 @@ import {
   StatusBadge,
 } from './CampaignsPage.styles';
 
-import {
-  formatCampaignNumber,
-  PROCESSING_LABELS,
-} from './useCampaigns';
+import { formatCampaignNumber, PROCESSING_LABELS } from './useCampaigns';
 
 export function CampaignDetailsModal({
   details,
@@ -59,10 +56,7 @@ export function CampaignDetailsModal({
             </span>
           </div>
 
-          <ModalClose
-            type="button"
-            onClick={onClose}
-          >
+          <ModalClose type="button" onClick={onClose}>
             ×
           </ModalClose>
         </ModalTitle>
@@ -76,9 +70,7 @@ export function CampaignDetailsModal({
                 <CompanyMeta>
                   <span>{company.domain || company.website || 'Нет сайта'}</span>
 
-                  {company.scanFormsCount > 0 && (
-                    <span>Форм: {company.scanFormsCount}</span>
-                  )}
+                  {company.scanFormsCount > 0 && <span>Форм: {company.scanFormsCount}</span>}
 
                   {company.bestFormScore > 0 && (
                     <span>Лучший рейтинг: {company.bestFormScore}%</span>
@@ -86,9 +78,7 @@ export function CampaignDetailsModal({
                 </CompanyMeta>
 
                 {company.scanError && (
-                  <ErrorBox title={company.scanError}>
-                    {company.scanError}
-                  </ErrorBox>
+                  <ErrorBox title={company.scanError}>{company.scanError}</ErrorBox>
                 )}
               </div>
 
@@ -99,12 +89,9 @@ export function CampaignDetailsModal({
                   {PROCESSING_LABELS[company.processingStatus] || company.processingStatus}
                 </StatusBadge>
 
-                {[
-                  'form_found',
-                  'no_form',
-                  'error',
-                  'test_filled',
-                ].includes(company.processingStatus) && (
+                {['form_found', 'no_form', 'error', 'test_filled'].includes(
+                  company.processingStatus,
+                ) && (
                   <ActionButton
                     type="button"
                     onClick={() => onOpenScanResult(company)}
@@ -134,10 +121,7 @@ export function CampaignDetailsModal({
 
             <ActionButton
               type="button"
-              disabled={
-                detailsLoading ||
-                details.pagination.page >= details.pagination.lastPage
-              }
+              disabled={detailsLoading || details.pagination.page >= details.pagination.lastPage}
               onClick={() => onChangePage(details.pagination.page + 1)}
             >
               Далее →
@@ -149,10 +133,7 @@ export function CampaignDetailsModal({
   );
 }
 
-export function CampaignScanResultModal({
-  scanResult,
-  onClose,
-}) {
+export function CampaignScanResultModal({ scanResult, onClose }) {
   if (!scanResult) {
     return null;
   }
@@ -173,10 +154,7 @@ export function CampaignScanResultModal({
             <span>{scanResult.domain || scanResult.website}</span>
           </div>
 
-          <ModalClose
-            type="button"
-            onClick={onClose}
-          >
+          <ModalClose type="button" onClick={onClose}>
             ×
           </ModalClose>
         </ModalTitle>
@@ -200,11 +178,7 @@ export function CampaignScanResultModal({
           </Stats>
 
           {scanResult.scanPageUrl && (
-            <ResultLink
-              href={scanResult.scanPageUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
+            <ResultLink href={scanResult.scanPageUrl} target="_blank" rel="noreferrer">
               Открыть страницу с формой ↗
             </ResultLink>
           )}
@@ -230,11 +204,7 @@ export function CampaignScanResultModal({
                 </div>
 
                 {form.pageUrl && (
-                  <ResultLink
-                    href={form.pageUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
+                  <ResultLink href={form.pageUrl} target="_blank" rel="noreferrer">
                     {form.pageUrl}
                   </ResultLink>
                 )}

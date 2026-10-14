@@ -1,55 +1,49 @@
-import { db } from "../db/database.js";
-import { ensureCampaignsSchema } from "../db/ensureCampaignsSchema.js";
+import { db } from '../db/database.js';
+import { ensureCampaignsSchema } from '../db/ensureCampaignsSchema.js';
 
 ensureCampaignsSchema();
 
-const CAMPAIGN_STATUSES = new Set([
-    "draft",
-    "ready",
-    "running",
-    "paused",
-    "completed",
-]);
+const CAMPAIGN_STATUSES = new Set(['draft', 'ready', 'running', 'paused', 'completed']);
 
 const MAX_CAMPAIGN_COMPANIES = 50000;
 
 const safeJsonParse = (value, fallback = null) => {
-    if (!value) return fallback;
+  if (!value) return fallback;
 
-    try {
-        return JSON.parse(value);
-    } catch {
-        return fallback;
-    }
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
 };
 
-const mapCampaign = (row) => {
-    if (!row) return null;
+const mapCampaign = row => {
+  if (!row) return null;
 
-    return {
-        id: row.id,
-        name: row.name,
-        senderName: row.sender_name,
-        senderPhone: row.sender_phone,
-        senderEmail: row.sender_email,
-        message: row.message,
-        status: row.status,
-        selection: safeJsonParse(row.selection_json, null),
-        companyCount: Number(row.company_count || 0),
-        pendingCount: Number(row.pending_count || 0),
-        scanningCount: Number(row.scanning_count || 0),
-        formFoundCount: Number(row.form_found_count || 0),
-        noFormCount: Number(row.no_form_count || 0),
-        noSiteCount: Number(row.no_site_count || 0),
-        errorCount: Number(row.error_count || 0),
-        captchaCount: Number(row.captcha_count || 0),
-        testFilledCount: Number(row.test_filled_count || 0),
-        sentCount: Number(row.sent_count || 0),
-        scanStartedAt: row.scan_started_at,
-        scanFinishedAt: row.scan_finished_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-    };
+  return {
+    id: row.id,
+    name: row.name,
+    senderName: row.sender_name,
+    senderPhone: row.sender_phone,
+    senderEmail: row.sender_email,
+    message: row.message,
+    status: row.status,
+    selection: safeJsonParse(row.selection_json, null),
+    companyCount: Number(row.company_count || 0),
+    pendingCount: Number(row.pending_count || 0),
+    scanningCount: Number(row.scanning_count || 0),
+    formFoundCount: Number(row.form_found_count || 0),
+    noFormCount: Number(row.no_form_count || 0),
+    noSiteCount: Number(row.no_site_count || 0),
+    errorCount: Number(row.error_count || 0),
+    captchaCount: Number(row.captcha_count || 0),
+    testFilledCount: Number(row.test_filled_count || 0),
+    sentCount: Number(row.sent_count || 0),
+    scanStartedAt: row.scan_started_at,
+    scanFinishedAt: row.scan_finished_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 };
 
 const campaignSelectSql = `
@@ -71,17 +65,17 @@ const campaignSelectSql = `
 `;
 
 const buildFilteredCompaniesQuery = (filters = {}) => {
-    const where = [];
-    const params = {};
+  const where = [];
+  const params = {};
 
-    const search = String(filters.search || "").trim();
-    const scanStatus = String(filters.scanStatus || "").trim();
-    const category = String(filters.category || "").trim();
-    const city = String(filters.city || "").trim();
-    const region = String(filters.region || "").trim();
+  const search = String(filters.search || '').trim();
+  const scanStatus = String(filters.scanStatus || '').trim();
+  const category = String(filters.category || '').trim();
+  const city = String(filters.city || '').trim();
+  const region = String(filters.region || '').trim();
 
-    if (search) {
-        where.push(`
+  if (search) {
+    where.push(`
             (
                 name LIKE @search
                 OR website LIKE @search
@@ -92,127 +86,150 @@ const buildFilteredCompaniesQuery = (filters = {}) => {
                 OR category LIKE @search
             )
         `);
-        params.search = `%${search}%`;
-    }
+    params.search = `%${search}%`;
+  }
 
-    if (scanStatus) {
-        where.push("scan_status = @scanStatus");
-        params.scanStatus = scanStatus;
-    }
+  if (scanStatus) {
+    where.push('scan_status = @scanStatus');
+    params.scanStatus = scanStatus;
+  }
 
-    if (category) {
-        where.push("category LIKE @category");
-        params.category = `%${category}%`;
-    }
+  if (category) {
+    where.push('category LIKE @category');
+    params.category = `%${category}%`;
+  }
 
-    if (city) {
-        where.push("city = @city");
-        params.city = city;
-    }
+  if (city) {
+    where.push('city = @city');
+    params.city = city;
+  }
 
-    if (region) {
-        where.push("region = @region");
-        params.region = region;
-    }
+  if (region) {
+    where.push('region = @region');
+    params.region = region;
+  }
 
-    return {
-        whereSql: where.length ? `WHERE ${where.join(" AND ")}` : "",
-        params,
-    };
+  return {
+    whereSql: where.length ? `WHERE ${where.join(' AND ')}` : '',
+    params,
+  };
 };
 
-const getCompaniesByIds = (ids) => {
-    const uniqueIds = [...new Set(
-        ids
-            .map((id) => Number(id))
-            .filter((id) => Number.isInteger(id) && id > 0)
-    )];
+const getCompaniesByIds = ids => {
+  const uniqueIds = [
+    ...new Set(ids.map(id => Number(id)).filter(id => Number.isInteger(id) && id > 0)),
+  ];
 
-    if (!uniqueIds.length) return [];
+  if (!uniqueIds.length) return [];
 
-    const rows = [];
-    const CHUNK = 500;
+  const rows = [];
+  const CHUNK = 500;
 
-    for (let offset = 0; offset < uniqueIds.length; offset += CHUNK) {
-        const chunk = uniqueIds.slice(offset, offset + CHUNK);
-        const placeholders = chunk.map(() => "?").join(", ");
+  for (let offset = 0; offset < uniqueIds.length; offset += CHUNK) {
+    const chunk = uniqueIds.slice(offset, offset + CHUNK);
+    const placeholders = chunk.map(() => '?').join(', ');
 
-        rows.push(...db.prepare(`
+    rows.push(
+      ...db
+        .prepare(
+          `
             SELECT id, name, website, domain, city, region, category
             FROM companies
             WHERE id IN (${placeholders})
             ORDER BY id ASC
-        `).all(...chunk));
-    }
+        `,
+        )
+        .all(...chunk),
+    );
+  }
 
-    return rows;
+  return rows;
 };
 
 const resolveSelection = (selection = {}) => {
-    if (selection.mode === "filters") {
-        const { whereSql, params } = buildFilteredCompaniesQuery(
-            selection.filters || {}
-        );
+  if (selection.mode === 'filters') {
+    const { whereSql, params } = buildFilteredCompaniesQuery(selection.filters || {});
 
-        const excluded = new Set(
-            (selection.excludedIds || [])
-                .map((id) => Number(id))
-                .filter((id) => Number.isInteger(id) && id > 0)
-        );
+    const excluded = new Set(
+      (selection.excludedIds || [])
+        .map(id => Number(id))
+        .filter(id => Number.isInteger(id) && id > 0),
+    );
 
-        return db.prepare(`
+    return db
+      .prepare(
+        `
             SELECT id, name, website, domain, city, region, category
             FROM companies
             ${whereSql}
             ORDER BY id ASC
-        `).all(params).filter((company) => !excluded.has(company.id));
-    }
+        `,
+      )
+      .all(params)
+      .filter(company => !excluded.has(company.id));
+  }
 
-    return getCompaniesByIds(selection.companyIds || []);
+  return getCompaniesByIds(selection.companyIds || []);
 };
 
 export const getCampaigns = () => {
-    const rows = db.prepare(`
+  const rows = db
+    .prepare(
+      `
         ${campaignSelectSql}
         GROUP BY c.id
         ORDER BY c.id DESC
-    `).all();
+    `,
+    )
+    .all();
 
-    return rows.map(mapCampaign);
+  return rows.map(mapCampaign);
 };
 
-export const getCampaignById = (id) => {
-    const row = db.prepare(`
+export const getCampaignById = id => {
+  const row = db
+    .prepare(
+      `
         ${campaignSelectSql}
         WHERE c.id = ?
         GROUP BY c.id
-    `).get(id);
+    `,
+    )
+    .get(id);
 
-    return mapCampaign(row);
+  return mapCampaign(row);
 };
 
 export const getCampaignCompanies = (
-    campaignId,
-    { page = 1, limit = 25, processingStatus = "" } = {}
+  campaignId,
+  { page = 1, limit = 25, processingStatus = '' } = {},
 ) => {
-    const safePage = Math.max(Number(page) || 1, 1);
-    const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
-    const offset = (safePage - 1) * safeLimit;
+  const safePage = Math.max(Number(page) || 1, 1);
+  const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 100);
+  const offset = (safePage - 1) * safeLimit;
 
-    const status = String(processingStatus || "").trim();
-    const statusSql = status ? "AND processing_status = @status" : "";
+  const status = String(processingStatus || '').trim();
+  const statusSql = status ? 'AND processing_status = @status' : '';
 
-    const total = Number(db.prepare(`
+  const total = Number(
+    db
+      .prepare(
+        `
         SELECT COUNT(*) AS total
         FROM campaign_companies
         WHERE campaign_id = @campaignId
         ${statusSql}
-    `).get({
+    `,
+      )
+      .get({
         campaignId,
         ...(status ? { status } : {}),
-    })?.total || 0);
+      })?.total || 0,
+  );
 
-    const companies = db.prepare(`
+  const companies = db
+    .prepare(
+      `
         SELECT
             id,
             campaign_id,
@@ -238,48 +255,50 @@ export const getCampaignCompanies = (
         ORDER BY id ASC
         LIMIT @limit
         OFFSET @offset
-    `).all({
-        campaignId,
-        ...(status ? { status } : {}),
-        limit: safeLimit,
-        offset,
-    }).map((row) => ({
-        id: row.id,
-        campaignId: row.campaign_id,
-        companyId: row.company_id,
-        companyName: row.company_name,
-        website: row.website,
-        domain: row.domain,
-        city: row.city,
-        region: row.region,
-        category: row.category,
-        processingStatus: row.processing_status,
-        scanError: row.scan_error,
-        scanPageUrl: row.scan_page_url,
-        scanFormsCount: Number(row.scan_forms_count || 0),
-        bestFormScore: Number(row.best_form_score || 0),
-        hasCaptcha: Boolean(row.has_captcha),
-        scannedAt: row.scanned_at,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
+    `,
+    )
+    .all({
+      campaignId,
+      ...(status ? { status } : {}),
+      limit: safeLimit,
+      offset,
+    })
+    .map(row => ({
+      id: row.id,
+      campaignId: row.campaign_id,
+      companyId: row.company_id,
+      companyName: row.company_name,
+      website: row.website,
+      domain: row.domain,
+      city: row.city,
+      region: row.region,
+      category: row.category,
+      processingStatus: row.processing_status,
+      scanError: row.scan_error,
+      scanPageUrl: row.scan_page_url,
+      scanFormsCount: Number(row.scan_forms_count || 0),
+      bestFormScore: Number(row.best_form_score || 0),
+      hasCaptcha: Boolean(row.has_captcha),
+      scannedAt: row.scanned_at,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     }));
 
-    return {
-        companies,
-        pagination: {
-            page: safePage,
-            limit: safeLimit,
-            total,
-            lastPage: Math.max(Math.ceil(total / safeLimit), 1),
-        },
-    };
+  return {
+    companies,
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      lastPage: Math.max(Math.ceil(total / safeLimit), 1),
+    },
+  };
 };
 
-export const getCampaignCompanyScanResult = (
-    campaignId,
-    campaignCompanyId
-) => {
-    const row = db.prepare(`
+export const getCampaignCompanyScanResult = (campaignId, campaignCompanyId) => {
+  const row = db
+    .prepare(
+      `
         SELECT
             id,
             campaign_id,
@@ -298,69 +317,73 @@ export const getCampaignCompanyScanResult = (
         FROM campaign_companies
         WHERE campaign_id = ?
         AND id = ?
-    `).get(campaignId, campaignCompanyId);
+    `,
+    )
+    .get(campaignId, campaignCompanyId);
 
-    if (!row) return null;
+  if (!row) return null;
 
-    return {
-        id: row.id,
-        campaignId: row.campaign_id,
-        companyId: row.company_id,
-        companyName: row.company_name,
-        website: row.website,
-        domain: row.domain,
-        processingStatus: row.processing_status,
-        scanError: row.scan_error,
-        scanPageUrl: row.scan_page_url,
-        scanFormsCount: Number(row.scan_forms_count || 0),
-        bestFormScore: Number(row.best_form_score || 0),
-        forms: safeJsonParse(row.scan_forms_json, []),
-        hasCaptcha: Boolean(row.has_captcha),
-        scannedAt: row.scanned_at,
-    };
+  return {
+    id: row.id,
+    campaignId: row.campaign_id,
+    companyId: row.company_id,
+    companyName: row.company_name,
+    website: row.website,
+    domain: row.domain,
+    processingStatus: row.processing_status,
+    scanError: row.scan_error,
+    scanPageUrl: row.scan_page_url,
+    scanFormsCount: Number(row.scan_forms_count || 0),
+    bestFormScore: Number(row.best_form_score || 0),
+    forms: safeJsonParse(row.scan_forms_json, []),
+    hasCaptcha: Boolean(row.has_captcha),
+    scannedAt: row.scanned_at,
+  };
 };
 
 export const createCampaign = ({
-    name,
-    senderName = "",
-    senderPhone = "",
-    senderEmail = "",
-    message,
-    selection,
+  name,
+  senderName = '',
+  senderPhone = '',
+  senderEmail = '',
+  message,
+  selection,
 }) => {
-    const cleanName = String(name || "").trim();
-    const cleanMessage = String(message || "").trim();
+  const cleanName = String(name || '').trim();
+  const cleanMessage = String(message || '').trim();
 
-    if (!cleanName) {
-        throw new Error("Название кампании обязательно");
-    }
+  if (!cleanName) {
+    throw new Error('Название кампании обязательно');
+  }
 
-    if (!cleanMessage) {
-        throw new Error("Текст обращения обязателен");
-    }
+  if (!cleanMessage) {
+    throw new Error('Текст обращения обязателен');
+  }
 
-    if (cleanName.length > 200) {
-        throw new Error("Название кампании слишком длинное");
-    }
+  if (cleanName.length > 200) {
+    throw new Error('Название кампании слишком длинное');
+  }
 
-    if (cleanMessage.length > 5000) {
-        throw new Error("Текст обращения не должен превышать 5000 символов");
-    }
+  if (cleanMessage.length > 5000) {
+    throw new Error('Текст обращения не должен превышать 5000 символов');
+  }
 
-    const companies = resolveSelection(selection || {});
+  const companies = resolveSelection(selection || {});
 
-    if (!companies.length) {
-        throw new Error("Не выбрано ни одной компании");
-    }
+  if (!companies.length) {
+    throw new Error('Не выбрано ни одной компании');
+  }
 
-    if (companies.length > MAX_CAMPAIGN_COMPANIES) {
-        throw new Error(
-            `В одной кампании можно выбрать не более ${MAX_CAMPAIGN_COMPANIES.toLocaleString("ru-RU")} компаний`
-        );
-    }
+  if (companies.length > MAX_CAMPAIGN_COMPANIES) {
+    throw new Error(
+      `В одной кампании можно выбрать не более ${MAX_CAMPAIGN_COMPANIES.toLocaleString('ru-RU')} компаний`,
+    );
+  }
 
-    const create = db.transaction(() => {
-        const campaignResult = db.prepare(`
+  const create = db.transaction(() => {
+    const campaignResult = db
+      .prepare(
+        `
             INSERT INTO campaigns (
                 name,
                 sender_name,
@@ -379,18 +402,20 @@ export const createCampaign = ({
                 'draft',
                 @selectionJson
             )
-        `).run({
-            name: cleanName,
-            senderName: String(senderName || "").trim() || null,
-            senderPhone: String(senderPhone || "").trim() || null,
-            senderEmail: String(senderEmail || "").trim() || null,
-            message: cleanMessage,
-            selectionJson: JSON.stringify(selection || {}),
-        });
+        `,
+      )
+      .run({
+        name: cleanName,
+        senderName: String(senderName || '').trim() || null,
+        senderPhone: String(senderPhone || '').trim() || null,
+        senderEmail: String(senderEmail || '').trim() || null,
+        message: cleanMessage,
+        selectionJson: JSON.stringify(selection || {}),
+      });
 
-        const campaignId = Number(campaignResult.lastInsertRowid);
+    const campaignId = Number(campaignResult.lastInsertRowid);
 
-        const insertCompany = db.prepare(`
+    const insertCompany = db.prepare(`
             INSERT INTO campaign_companies (
                 campaign_id,
                 company_id,
@@ -415,63 +440,70 @@ export const createCampaign = ({
             )
         `);
 
-        for (const company of companies) {
-            insertCompany.run({
-                campaignId,
-                companyId: company.id,
-                companyName: company.name,
-                website: company.website || null,
-                domain: company.domain || null,
-                city: company.city || null,
-                region: company.region || null,
-                category: company.category || null,
-                processingStatus: company.website ? "pending" : "no_site",
-            });
-        }
+    for (const company of companies) {
+      insertCompany.run({
+        campaignId,
+        companyId: company.id,
+        companyName: company.name,
+        website: company.website || null,
+        domain: company.domain || null,
+        city: company.city || null,
+        region: company.region || null,
+        category: company.category || null,
+        processingStatus: company.website ? 'pending' : 'no_site',
+      });
+    }
 
-        return campaignId;
-    });
+    return campaignId;
+  });
 
-    return getCampaignById(create());
+  return getCampaignById(create());
 };
 
 export const updateCampaignStatus = (id, status) => {
-    if (!CAMPAIGN_STATUSES.has(status)) {
-        throw new Error("Некорректный статус кампании");
-    }
+  if (!CAMPAIGN_STATUSES.has(status)) {
+    throw new Error('Некорректный статус кампании');
+  }
 
-    const result = db.prepare(`
+  const result = db
+    .prepare(
+      `
         UPDATE campaigns
         SET
             status = @status,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = @id
-    `).run({ id, status });
+    `,
+    )
+    .run({ id, status });
 
-    if (!result.changes) return null;
+  if (!result.changes) return null;
 
-    return getCampaignById(id);
+  return getCampaignById(id);
 };
 
-export const prepareCampaignScan = (campaignId) => {
-    const campaign = getCampaignById(campaignId);
-    if (!campaign) return null;
+export const prepareCampaignScan = campaignId => {
+  const campaign = getCampaignById(campaignId);
+  if (!campaign) return null;
 
-    const prepare = db.transaction(() => {
-        /*
-         * Если backend был перезапущен во время сканирования,
-         * зависшие scanning возвращаем в очередь.
-         */
-        db.prepare(`
+  const prepare = db.transaction(() => {
+    /*
+     * Если backend был перезапущен во время сканирования,
+     * зависшие scanning возвращаем в очередь.
+     */
+    db.prepare(
+      `
             UPDATE campaign_companies
             SET
                 processing_status = 'pending',
                 updated_at = CURRENT_TIMESTAMP
             WHERE campaign_id = ?
             AND processing_status = 'scanning'
-        `).run(campaignId);
+        `,
+    ).run(campaignId);
 
-        db.prepare(`
+    db.prepare(
+      `
             UPDATE campaigns
             SET
                 status = 'running',
@@ -479,52 +511,66 @@ export const prepareCampaignScan = (campaignId) => {
                 scan_finished_at = NULL,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        `).run(campaignId);
-    });
+        `,
+    ).run(campaignId);
+  });
 
-    prepare();
+  prepare();
 
-    return getCampaignById(campaignId);
+  return getCampaignById(campaignId);
 };
 
-export const pauseCampaignScanInDb = (campaignId) => {
-    const result = db.prepare(`
+export const pauseCampaignScanInDb = campaignId => {
+  const result = db
+    .prepare(
+      `
         UPDATE campaigns
         SET
             status = 'paused',
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(campaignId);
+    `,
+    )
+    .run(campaignId);
 
-    if (!result.changes) return null;
+  if (!result.changes) return null;
 
-    return getCampaignById(campaignId);
+  return getCampaignById(campaignId);
 };
 
-export const completeCampaignScan = (campaignId) => {
-    db.prepare(`
+export const completeCampaignScan = campaignId => {
+  db.prepare(
+    `
         UPDATE campaigns
         SET
             status = 'completed',
             scan_finished_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    `).run(campaignId);
+    `,
+  ).run(campaignId);
 
-    return getCampaignById(campaignId);
+  return getCampaignById(campaignId);
 };
 
-export const resetCampaignErrors = (campaignId) => {
-    const reset = db.transaction(() => {
-        const companyIds = db.prepare(`
+export const resetCampaignErrors = campaignId => {
+  const reset = db.transaction(() => {
+    const companyIds = db
+      .prepare(
+        `
             SELECT company_id
             FROM campaign_companies
             WHERE campaign_id = ?
             AND processing_status = 'error'
             AND company_id IS NOT NULL
-        `).all(campaignId).map((row) => row.company_id);
+        `,
+      )
+      .all(campaignId)
+      .map(row => row.company_id);
 
-        const result = db.prepare(`
+    const result = db
+      .prepare(
+        `
             UPDATE campaign_companies
             SET
                 processing_status = 'pending',
@@ -539,10 +585,12 @@ export const resetCampaignErrors = (campaignId) => {
             WHERE campaign_id = ?
             AND processing_status = 'error'
             AND website IS NOT NULL
-        `).run(campaignId);
+        `,
+      )
+      .run(campaignId);
 
-        if (companyIds.length) {
-            const updateBase = db.prepare(`
+    if (companyIds.length) {
+      const updateBase = db.prepare(`
                 UPDATE companies
                 SET
                     scan_status = 'new',
@@ -551,20 +599,22 @@ export const resetCampaignErrors = (campaignId) => {
                 WHERE id = ?
             `);
 
-            for (const companyId of companyIds) {
-                updateBase.run(companyId);
-            }
-        }
+      for (const companyId of companyIds) {
+        updateBase.run(companyId);
+      }
+    }
 
-        return result.changes;
-    });
+    return result.changes;
+  });
 
-    return reset();
+  return reset();
 };
 
-export const claimNextCampaignCompany = (campaignId) => {
-    const claim = db.transaction(() => {
-        const row = db.prepare(`
+export const claimNextCampaignCompany = campaignId => {
+  const claim = db.transaction(() => {
+    const row = db
+      .prepare(
+        `
             SELECT
                 id,
                 campaign_id,
@@ -579,11 +629,15 @@ export const claimNextCampaignCompany = (campaignId) => {
             AND TRIM(website) <> ''
             ORDER BY id ASC
             LIMIT 1
-        `).get(campaignId);
+        `,
+      )
+      .get(campaignId);
 
-        if (!row) return null;
+    if (!row) return null;
 
-        const changed = db.prepare(`
+    const changed = db
+      .prepare(
+        `
             UPDATE campaign_companies
             SET
                 processing_status = 'scanning',
@@ -591,34 +645,32 @@ export const claimNextCampaignCompany = (campaignId) => {
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
             AND processing_status = 'pending'
-        `).run(row.id);
+        `,
+      )
+      .run(row.id);
 
-        if (!changed.changes) return null;
+    if (!changed.changes) return null;
 
-        return {
-            id: row.id,
-            campaignId: row.campaign_id,
-            companyId: row.company_id,
-            companyName: row.company_name,
-            website: row.website,
-            domain: row.domain,
-        };
-    });
+    return {
+      id: row.id,
+      campaignId: row.campaign_id,
+      companyId: row.company_id,
+      companyName: row.company_name,
+      website: row.website,
+      domain: row.domain,
+    };
+  });
 
-    return claim();
+  return claim();
 };
 
-export const saveCampaignCompanyScanSuccess = (
-    campaignCompany,
-    result
-) => {
-    const formsCount = Number(result.formsCount || 0);
-    const processingStatus = formsCount > 0
-        ? "form_found"
-        : "no_form";
+export const saveCampaignCompanyScanSuccess = (campaignCompany, result) => {
+  const formsCount = Number(result.formsCount || 0);
+  const processingStatus = formsCount > 0 ? 'form_found' : 'no_form';
 
-    const save = db.transaction(() => {
-        db.prepare(`
+  const save = db.transaction(() => {
+    db.prepare(
+      `
             UPDATE campaign_companies
             SET
                 processing_status = @processingStatus,
@@ -631,48 +683,46 @@ export const saveCampaignCompanyScanSuccess = (
                 scanned_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = @id
-        `).run({
-            id: campaignCompany.id,
-            processingStatus,
-            scanPageUrl: result.scanPageUrl || result.url || null,
-            formsCount,
-            bestFormScore: Number(result.bestFormScore || 0),
-            formsJson: JSON.stringify(result.forms || []),
-            hasCaptcha: result.hasCaptcha ? 1 : 0,
-        });
+        `,
+    ).run({
+      id: campaignCompany.id,
+      processingStatus,
+      scanPageUrl: result.scanPageUrl || result.url || null,
+      formsCount,
+      bestFormScore: Number(result.bestFormScore || 0),
+      formsJson: JSON.stringify(result.forms || []),
+      hasCaptcha: result.hasCaptcha ? 1 : 0,
+    });
 
-        if (campaignCompany.companyId) {
-            db.prepare(`
+    if (campaignCompany.companyId) {
+      db.prepare(
+        `
                 UPDATE companies
                 SET
                     scan_status = @scanStatus,
                     last_scanned_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = @companyId
-            `).run({
-                companyId: campaignCompany.companyId,
-                scanStatus: processingStatus === "no_form"
-                    ? "no_form"
-                    : "scanned",
-            });
-        }
-    });
+            `,
+      ).run({
+        companyId: campaignCompany.companyId,
+        scanStatus: processingStatus === 'no_form' ? 'no_form' : 'scanned',
+      });
+    }
+  });
 
-    save();
+  save();
 };
 
-export const saveCampaignCompanyScanError = (
-    campaignCompany,
-    error
-) => {
-    const message = String(
-        error?.message ||
-        error ||
-        "Неизвестная ошибка сканирования"
-    ).slice(0, 2000);
+export const saveCampaignCompanyScanError = (campaignCompany, error) => {
+  const message = String(error?.message || error || 'Неизвестная ошибка сканирования').slice(
+    0,
+    2000,
+  );
 
-    const save = db.transaction(() => {
-        db.prepare(`
+  const save = db.transaction(() => {
+    db.prepare(
+      `
             UPDATE campaign_companies
             SET
                 processing_status = 'error',
@@ -680,48 +730,63 @@ export const saveCampaignCompanyScanError = (
                 scanned_at = CURRENT_TIMESTAMP,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = @id
-        `).run({
-            id: campaignCompany.id,
-            message,
-        });
+        `,
+    ).run({
+      id: campaignCompany.id,
+      message,
+    });
 
-        if (campaignCompany.companyId) {
-            db.prepare(`
+    if (campaignCompany.companyId) {
+      db.prepare(
+        `
                 UPDATE companies
                 SET
                     scan_status = 'error',
                     last_scanned_at = CURRENT_TIMESTAMP,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
-            `).run(campaignCompany.companyId);
-        }
-    });
+            `,
+      ).run(campaignCompany.companyId);
+    }
+  });
 
-    save();
+  save();
 };
 
-export const getPendingCampaignCompanyCount = (campaignId) =>
-    Number(db.prepare(`
+export const getPendingCampaignCompanyCount = campaignId =>
+  Number(
+    db
+      .prepare(
+        `
         SELECT COUNT(*) AS total
         FROM campaign_companies
         WHERE campaign_id = ?
         AND processing_status = 'pending'
         AND website IS NOT NULL
         AND TRIM(website) <> ''
-    `).get(campaignId)?.total || 0);
+    `,
+      )
+      .get(campaignId)?.total || 0,
+  );
 
-export const deleteCampaign = (id) => {
-    const remove = db.transaction(() => {
-        db.prepare(`
+export const deleteCampaign = id => {
+  const remove = db.transaction(() => {
+    db.prepare(
+      `
             DELETE FROM campaign_companies
             WHERE campaign_id = ?
-        `).run(id);
+        `,
+    ).run(id);
 
-        return db.prepare(`
+    return db
+      .prepare(
+        `
             DELETE FROM campaigns
             WHERE id = ?
-        `).run(id).changes;
-    });
+        `,
+      )
+      .run(id).changes;
+  });
 
-    return remove() > 0;
+  return remove() > 0;
 };

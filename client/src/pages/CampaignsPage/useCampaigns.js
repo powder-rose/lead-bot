@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   deleteCampaign,
@@ -79,10 +74,7 @@ export function getCampaignProgress(campaign) {
     return 0;
   }
 
-  return Math.min(
-    Math.round((getProcessedCount(campaign) / total) * 100),
-    100,
-  );
+  return Math.min(Math.round((getProcessedCount(campaign) / total) * 100), 100);
 }
 
 export function useCampaigns() {
@@ -134,9 +126,7 @@ export function useCampaigns() {
           ...result,
         }));
       } catch (requestError) {
-        setError(
-          requestError.message || 'Не удалось открыть компании кампании',
-        );
+        setError(requestError.message || 'Не удалось открыть компании кампании');
       } finally {
         if (!silent) {
           setDetailsLoading(false);
@@ -169,22 +159,14 @@ export function useCampaigns() {
     }, POLLING_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [
-    hasRunningCampaign,
-    loadCampaigns,
-    loadDetails,
-    details?.campaign?.id,
-    detailsPage,
-  ]);
+  }, [hasRunningCampaign, loadCampaigns, loadDetails, details?.campaign?.id, detailsPage]);
 
   useEffect(() => {
     if (!details?.campaign?.id) {
       return;
     }
 
-    const fresh = campaigns.find(
-      campaign => campaign.id === details.campaign.id,
-    );
+    const fresh = campaigns.find(campaign => campaign.id === details.campaign.id);
 
     if (fresh) {
       setDetails(current => ({
@@ -230,9 +212,7 @@ export function useCampaigns() {
       await pauseCampaignScan(campaign.id);
       await loadCampaigns(true);
     } catch (requestError) {
-      setError(
-        requestError.message || 'Не удалось поставить проверку на паузу',
-      );
+      setError(requestError.message || 'Не удалось поставить проверку на паузу');
     } finally {
       setActionId(null);
     }
@@ -254,9 +234,7 @@ export function useCampaigns() {
 
   async function handleDelete(campaign) {
     if (campaign.status === 'running') {
-      setError(
-        'Сначала поставьте сканирование на паузу, затем удаляйте кампанию.',
-      );
+      setError('Сначала поставьте сканирование на паузу, затем удаляйте кампанию.');
       return;
     }
 
@@ -298,9 +276,7 @@ export function useCampaigns() {
         ...result,
       });
     } catch (requestError) {
-      setError(
-        requestError.message || 'Не удалось открыть компании кампании',
-      );
+      setError(requestError.message || 'Не удалось открыть компании кампании');
     } finally {
       setDetailsLoading(false);
     }
@@ -328,16 +304,11 @@ export function useCampaigns() {
     setError(null);
 
     try {
-      const result = await getCampaignCompanyScanResult(
-        details.campaign.id,
-        company.id,
-      );
+      const result = await getCampaignCompanyScanResult(details.campaign.id, company.id);
 
       setScanResult(result);
     } catch (requestError) {
-      setError(
-        requestError.message || 'Не удалось открыть результат сканирования',
-      );
+      setError(requestError.message || 'Не удалось открыть результат сканирования');
     } finally {
       setScanResultLoading(false);
     }
@@ -348,11 +319,7 @@ export function useCampaigns() {
   }
 
   const totalCompanies = useMemo(
-    () =>
-      campaigns.reduce(
-        (sum, campaign) => sum + Number(campaign.companyCount || 0),
-        0,
-      ),
+    () => campaigns.reduce((sum, campaign) => sum + Number(campaign.companyCount || 0), 0),
     [campaigns],
   );
 

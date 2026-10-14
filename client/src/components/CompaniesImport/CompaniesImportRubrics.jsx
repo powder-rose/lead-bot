@@ -32,14 +32,12 @@ export function CompaniesImportRubrics({
             {formatImportNumber(rubrics.totals?.subcategories)} подрубрик
           </strong>
 
-          <SelectedInfo>
-            Выбрано: {selectedCount}. Выбор сохраняется автоматически.
-          </SelectedInfo>
+          <SelectedInfo>Выбрано: {selectedCount}. Выбор сохраняется автоматически.</SelectedInfo>
         </div>
 
         <RubricsSearch
           value={rubricSearch}
-          onChange={(event) => onSearchChange(event.target.value)}
+          onChange={event => onSearchChange(event.target.value)}
           placeholder="Например: пожарная безопасность"
         />
       </RubricsHeader>
@@ -49,7 +47,7 @@ export function CompaniesImportRubrics({
           <h3>Рубрики</h3>
 
           <RubricList>
-            {visibleCategories.map((item) => (
+            {visibleCategories.map(item => (
               <RubricItem key={item.name}>
                 <RubricCheckbox
                   type="checkbox"
@@ -67,7 +65,7 @@ export function CompaniesImportRubrics({
           <h3>Подрубрики</h3>
 
           <RubricList>
-            {visibleSubcategories.map((item) => (
+            {visibleSubcategories.map(item => (
               <RubricItem key={item.name}>
                 <RubricCheckbox
                   type="checkbox"

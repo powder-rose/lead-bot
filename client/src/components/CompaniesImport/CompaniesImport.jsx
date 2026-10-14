@@ -30,12 +30,7 @@ const getModalTitle = ({ importResult, selectionAnalysis, rubrics, analysis }) =
   return 'Предпросмотр импорта';
 };
 
-const getModalSubtitle = ({
-  importResult,
-  selectionAnalysis,
-  rubrics,
-  analysis,
-}) => {
+const getModalSubtitle = ({ importResult, selectionAnalysis, rubrics, analysis }) => {
   if (importResult) {
     return 'Компании записаны в базу LeadBot и готовы к дальнейшей обработке';
   }
@@ -93,8 +88,7 @@ export function CompaniesImport() {
     closePreview,
   } = importFlow;
 
-  const modalBusy =
-    analyzing || loadingRubrics || analyzingSelection || importing;
+  const modalBusy = analyzing || loadingRubrics || analyzingSelection || importing;
 
   return (
     <>
@@ -102,18 +96,13 @@ export function CompaniesImport() {
         {loading ? 'Читаем файл...' : 'Импортировать базу'}
       </ImportButton>
 
-      <HiddenFileInput
-        ref={inputRef}
-        type="file"
-        accept=".xlsx"
-        onChange={handleFileChange}
-      />
+      <HiddenFileInput ref={inputRef} type="file" accept=".xlsx" onChange={handleFileChange} />
 
       {error && !preview && <ImportError>{error}</ImportError>}
 
       {preview && (
         <ImportOverlay
-          onMouseDown={(event) => {
+          onMouseDown={event => {
             if (event.target === event.currentTarget) {
               closePreview();
             }
@@ -126,11 +115,7 @@ export function CompaniesImport() {
                 <ImportSubtitle>{getModalSubtitle(importFlow)}</ImportSubtitle>
               </div>
 
-              <CloseButton
-                type="button"
-                onClick={closePreview}
-                disabled={modalBusy}
-              >
+              <CloseButton type="button" onClick={closePreview} disabled={modalBusy}>
                 ×
               </CloseButton>
             </ImportHeader>
@@ -182,15 +167,11 @@ export function CompaniesImport() {
                   <ContinueButton
                     type="button"
                     onClick={handleImport}
-                    disabled={
-                      importing || selectionAnalysis.readyToImport <= 0
-                    }
+                    disabled={importing || selectionAnalysis.readyToImport <= 0}
                   >
                     {importing
                       ? 'Импортируем компании...'
-                      : `Импортировать ${formatImportNumber(
-                          selectionAnalysis.readyToImport,
-                        )}`}
+                      : `Импортировать ${formatImportNumber(selectionAnalysis.readyToImport)}`}
                   </ContinueButton>
                 </>
               ) : rubrics ? (
@@ -228,14 +209,8 @@ export function CompaniesImport() {
                   </CancelButton>
 
                   {!analysis ? (
-                    <ContinueButton
-                      type="button"
-                      onClick={handleAnalyze}
-                      disabled={analyzing}
-                    >
-                      {analyzing
-                        ? 'Анализируем весь файл...'
-                        : 'Анализировать весь файл'}
+                    <ContinueButton type="button" onClick={handleAnalyze} disabled={analyzing}>
+                      {analyzing ? 'Анализируем весь файл...' : 'Анализировать весь файл'}
                     </ContinueButton>
                   ) : (
                     <ContinueButton

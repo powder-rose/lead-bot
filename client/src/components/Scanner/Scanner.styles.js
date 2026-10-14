@@ -1,11 +1,6 @@
-import styled, { keyframes } from "styled-components";
+import styled, { keyframes } from 'styled-components';
 
-import {
-    PINK,
-    PINK_DARK,
-    TEXT,
-    BORDER,
-} from "../../styles/theme.js";
+import { PINK, PINK_DARK, TEXT, BORDER } from '../../styles/theme.js';
 
 const spin = keyframes`
     to {
@@ -13,226 +8,223 @@ const spin = keyframes`
     }
 `;
 
-
 export const HeroCard = styled.section`
-    position: relative;
+  position: relative;
 
-    padding: 34px;
+  padding: 34px;
 
-    overflow: hidden;
+  overflow: hidden;
 
-    border: 1px solid ${BORDER};
-    border-radius: 24px;
+  border: 1px solid ${BORDER};
+  border-radius: 24px;
 
-    background: #ffffff;
+  background: #ffffff;
 
-    @media (max-width: 600px) {
-        padding: 24px;
-    }
+  @media (max-width: 600px) {
+    padding: 24px;
+  }
 `;
 
 export const HeroGlow = styled.div`
-    position: absolute;
+  position: absolute;
 
-    width: 280px;
-    height: 280px;
+  width: 280px;
+  height: 280px;
 
-    top: -190px;
-    right: -100px;
+  top: -190px;
+  right: -100px;
 
-    border-radius: 50%;
+  border-radius: 50%;
 
-    background: rgba(243, 167, 184, 0.16);
+  background: rgba(243, 167, 184, 0.16);
 
-    filter: blur(35px);
+  filter: blur(35px);
 
-    pointer-events: none;
+  pointer-events: none;
 `;
 
 export const HeroHeader = styled.div`
-    position: relative;
+  position: relative;
 
-    max-width: 680px;
+  max-width: 680px;
 `;
 
 export const HeroKicker = styled.div`
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 
-    color: ${PINK_DARK};
+  color: ${PINK_DARK};
 
-    font-size: 10px;
-    font-weight: 700;
+  font-size: 10px;
+  font-weight: 700;
 
-    letter-spacing: 0.7px;
+  letter-spacing: 0.7px;
 `;
 
 export const HeroTitle = styled.h2`
-    margin: 0;
+  margin: 0;
 
-    color: ${TEXT};
+  color: ${TEXT};
 
-    font-size: 28px;
-    font-weight: 650;
+  font-size: 28px;
+  font-weight: 650;
 
-    letter-spacing: -0.8px;
+  letter-spacing: -0.8px;
 `;
 
 export const HeroText = styled.p`
-    max-width: 660px;
+  max-width: 660px;
 
-    margin: 11px 0 0;
+  margin: 11px 0 0;
 
-    color: #777777;
+  color: #777777;
 
-    font-size: 14px;
-    line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.65;
 `;
 
 export const ScanForm = styled.form`
-    position: relative;
+  position: relative;
 
-    margin-top: 28px;
+  margin-top: 28px;
 
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
 
-    @media (max-width: 650px) {
-        grid-template-columns: 1fr;
-    }
+  @media (max-width: 650px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const UrlField = styled.div`
-    height: 56px;
+  height: 56px;
 
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 
-    overflow: hidden;
+  overflow: hidden;
 
-    border: 1px solid #dedede;
-    border-radius: 14px;
+  border: 1px solid #dedede;
+  border-radius: 14px;
 
-    background: #f7f7f7;
+  background: #f7f7f7;
 
-    transition:
-        border-color 0.15s,
-        background 0.15s,
-        box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
 
-    &:focus-within {
-        border-color: ${PINK};
+  &:focus-within {
+    border-color: ${PINK};
 
-        background: #ffffff;
+    background: #ffffff;
 
-        box-shadow: 0 0 0 4px
-            rgba(243, 167, 184, 0.14);
-    }
+    box-shadow: 0 0 0 4px rgba(243, 167, 184, 0.14);
+  }
 `;
 
 export const UrlPrefix = styled.span`
-    padding-left: 17px;
+  padding-left: 17px;
 
-    color: #a0a0a0;
+  color: #a0a0a0;
 
-    font-size: 14px;
+  font-size: 14px;
 
-    user-select: none;
+  user-select: none;
 `;
 
 export const UrlInput = styled.input`
-    flex: 1;
-    min-width: 0;
-    height: 100%;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
 
-    padding: 0 17px 0 3px;
+  padding: 0 17px 0 3px;
 
-    border: 0;
-    outline: 0;
+  border: 0;
+  outline: 0;
 
-    background: transparent;
-    color: ${TEXT};
+  background: transparent;
+  color: ${TEXT};
 
-    font-size: 14px;
+  font-size: 14px;
 
-    &::placeholder {
-        color: #b4b4b4;
-    }
+  &::placeholder {
+    color: #b4b4b4;
+  }
 `;
 
 export const ScanButton = styled.button`
-    min-width: 180px;
-    height: 56px;
+  min-width: 180px;
+  height: 56px;
 
-    padding: 0 22px;
+  padding: 0 22px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 
-    border: 0;
-    border-radius: 14px;
+  border: 0;
+  border-radius: 14px;
 
-    background: ${PINK};
-    color: #ffffff;
+  background: ${PINK};
+  color: #ffffff;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    font-size: 13px;
-    font-weight: 600;
+  font-size: 13px;
+  font-weight: 600;
 
-    transition:
-        background 0.15s,
-        transform 0.15s,
-        box-shadow 0.15s;
+  transition:
+    background 0.15s,
+    transform 0.15s,
+    box-shadow 0.15s;
 
-    span {
-        font-size: 18px;
-    }
+  span {
+    font-size: 18px;
+  }
 
-    &:hover:not(:disabled) {
-        background: ${PINK_DARK};
+  &:hover:not(:disabled) {
+    background: ${PINK_DARK};
 
-        transform: translateY(-1px);
+    transform: translateY(-1px);
 
-        box-shadow: 0 8px 20px
-            rgba(217, 133, 154, 0.2);
-    }
+    box-shadow: 0 8px 20px rgba(217, 133, 154, 0.2);
+  }
 
-    &:active:not(:disabled) {
-        transform: translateY(0);
-    }
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
 
-    &:disabled {
-        cursor: default;
-        opacity: 0.55;
-    }
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
 `;
 
 export const Spinner = styled.i`
-    width: 15px;
-    height: 15px;
+  width: 15px;
+  height: 15px;
 
-    border: 2px solid rgba(255, 255, 255, 0.35);
-    border-top-color: #ffffff;
-    border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
 
-    animation: ${spin} 0.7s linear infinite;
+  animation: ${spin} 0.7s linear infinite;
 `;
 
 export const ErrorBox = styled.div`
-    margin-top: 16px;
-    padding: 14px 16px;
+  margin-top: 16px;
+  padding: 14px 16px;
 
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 
-    border-radius: 12px;
+  border-radius: 12px;
 
-    background: #fff1f4;
-    color: #a44f64;
+  background: #fff1f4;
+  color: #a44f64;
 
-    font-size: 12px;
+  font-size: 12px;
 `;

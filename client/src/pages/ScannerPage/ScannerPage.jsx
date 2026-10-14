@@ -1,313 +1,170 @@
-import {
-    useState,
-} from "react";
+import { useState } from 'react';
 
-import {
-    Content,
-} from "../../App.styles.js";
+import { Content } from '../../App.styles.js';
 
-import {
-    scanSite,
-    testFillForm,
-} from "../../api/leadBotApi.js";
+import { scanSite, testFillForm } from '../../api/leadBotApi.js';
 
-import {
-    normalizeUrl,
-} from "../../utils/formUtils.js";
+import { normalizeUrl } from '../../utils/formUtils.js';
 
-import {
-    Header,
-} from "../../components/Header/Header.jsx";
+import { Header } from '../../components/Header/Header.jsx';
 
-import {
-    Scanner,
-} from "../../components/Scanner/Scanner.jsx";
+import { Scanner } from '../../components/Scanner/Scanner.jsx';
 
-import {
-    LeadData,
-} from "../../components/LeadData/LeadData.jsx";
+import { LeadData } from '../../components/LeadData/LeadData.jsx';
 
-import {
-    ScanResults,
-} from "../../components/ScanResults/ScanResults.jsx";
-
+import { ScanResults } from '../../components/ScanResults/ScanResults.jsx';
 
 export const ScannerPage = () => {
-    const [
-        url,
-        setUrl,
-    ] = useState("");
+  const [url, setUrl] = useState('');
 
-    const [
-        result,
-        setResult,
-    ] = useState(null);
+  const [result, setResult] = useState(null);
 
-    const [
-        error,
-        setError,
-    ] = useState(null);
+  const [error, setError] = useState(null);
 
-    const [
-        loading,
-        setLoading,
-    ] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const [
+  const [leadData, setLeadData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+
+  const [fillMode, setFillMode] = useState('auto');
+
+  const [testingForm, setTestingForm] = useState(null);
+
+  const [testResult, setTestResult] = useState(null);
+
+  const [testError, setTestError] = useState(null);
+
+  const handleLeadChange = event => {
+    const { name, value } = event.target;
+
+    setLeadData(current => ({
+      ...current,
+
+      [name]: value,
+    }));
+  };
+
+  const handleScan = async event => {
+    event.preventDefault();
+
+    const normalizedUrl = normalizeUrl(url);
+
+    if (!normalizedUrl) {
+      setError('Введите адрес сайта');
+
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setTestResult(null);
+    setTestError(null);
+
+    try {
+      const data = await scanSite(normalizedUrl);
+
+      setResult(data);
+    } catch (error) {
+      setError(error.message || 'Не удалось проанализировать сайт');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestFill = async (form, fieldValues = []) => {
+    setTestingForm(form.formIndex);
+
+    setTestResult(null);
+
+    setTestError(null);
+
+    try {
+      const data = await testFillForm({
+        pageUrl: form.pageUrl,
+
         leadData,
-        setLeadData,
-    ] = useState({
-        name: "",
-        phone: "",
-        email: "",
-        subject: "",
-        message: "",
-    });
 
-    const [
-    fillMode,
-    setFillMode,
-] = useState("auto");
+        fillMode,
 
-    const [
-        testingForm,
-        setTestingForm,
-    ] = useState(null);
+        fieldValues,
 
-    const [
-        testResult,
-        setTestResult,
-    ] = useState(null);
+        trigger: form.trigger || null,
 
-    const [
-        testError,
-        setTestError,
-    ] = useState(null);
+        formHint: {
+          sourceFormIndex: form.sourceFormIndex,
 
+          synthetic: form.synthetic === true,
 
-    const handleLeadChange = (
-        event
-    ) => {
-        const {
-            name,
-            value,
-        } = event.target;
+          source: form.source || 'page',
+        },
+      });
 
-        setLeadData(
-            (
-                current
-            ) => ({
-                ...current,
+      setTestResult({
+        formIndex: form.formIndex,
 
-                [name]:
-                    value,
-            })
-        );
-    };
+        ...data,
+      });
+    } catch (error) {
+      if (error.data?.screenshot) {
+        setTestResult({
+          formIndex: form.formIndex,
 
+          filledCount: 0,
 
-    const handleScan = async (
-        event
-    ) => {
-        event.preventDefault();
+          screenshot: error.data.screenshot,
 
-        const normalizedUrl =
-            normalizeUrl(
-                url
-            );
+          diagnostic: error.data.diagnostic,
+        });
+      }
 
-        if (!normalizedUrl) {
-            setError(
-                "Введите адрес сайта"
-            );
+      setTestError(error.message || 'Ошибка тестового заполнения');
+    } finally {
+      setTestingForm(null);
+    }
+  };
 
-            return;
-        }
+  return (
+    <>
+      <Header
+        eyebrow="Автоматизация заявок"
+        title="Сканер сайтов"
+        subtitle="Находим и проверяем формы компаний"
+      />
 
-        setLoading(true);
-        setError(null);
-        setResult(null);
-        setTestResult(null);
-        setTestError(null);
+      <Content>
+        <Scanner
+          url={url}
+          loading={loading}
+          error={error}
+          onUrlChange={setUrl}
+          onSubmit={handleScan}
+        />
 
-        try {
-            const data =
-                await scanSite(
-                    normalizedUrl
-                );
+        <LeadData
+          leadData={leadData}
+          onChange={handleLeadChange}
+          fillMode={fillMode}
 
-            setResult(
-                data
-            );
-        } catch (error) {
-            setError(
-                error.message ||
-                    "Не удалось проанализировать сайт"
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+          onFillModeChange={setFillMode}
+        />
 
-
-    const handleTestFill =
-    async (
-        form,
-        fieldValues = []
-    ) => {
-            setTestingForm(
-                form.formIndex
-            );
-
-            setTestResult(
-                null
-            );
-
-            setTestError(
-                null
-            );
-
-            try {
-                const data =
-                    await testFillForm({
-                        pageUrl:
-                            form.pageUrl,
-
-                        leadData,
-
-                        fillMode,
-
-                        fieldValues,   
-
-                        trigger:
-                            form.trigger ||
-                            null,
-
-                        formHint: {
-                            sourceFormIndex:
-                                form.sourceFormIndex,
-
-                        synthetic:
-                            form.synthetic ===
-                            true,
-
-                        source:
-                            form.source ||
-                            "page",
-                        },
-
-                    });
-
-                setTestResult({
-                    formIndex:
-                        form.formIndex,
-
-                    ...data,
-                });
-            } catch (error) {
-                if (
-                    error.data
-                        ?.screenshot
-                ) {
-                    setTestResult({
-                        formIndex:
-                            form.formIndex,
-
-                        filledCount:
-                            0,
-
-                        screenshot:
-                            error.data
-                                .screenshot,
-
-                        diagnostic:
-                            error.data
-                                .diagnostic,
-                    });
-                }
-
-                setTestError(
-                    error.message ||
-                        "Ошибка тестового заполнения"
-                );
-            } finally {
-                setTestingForm(
-                    null
-                );
-            }
-        };
-
-
-    return (
-        <>
-            <Header
-                eyebrow="Автоматизация заявок"
-                title="Сканер сайтов"
-                subtitle="Находим и проверяем формы компаний"
-            />
-
-            <Content>
-                <Scanner
-                    url={
-                        url
-                    }
-                    loading={
-                        loading
-                    }
-                    error={
-                        error
-                    }
-                    onUrlChange={
-                        setUrl
-                    }
-                    onSubmit={
-                        handleScan
-                    }
-                />
-
-                <LeadData
-                    leadData={
-                        leadData
-                    }
-                    onChange={
-                        handleLeadChange
-                    }
-                    fillMode={
-                        fillMode
-                    }
-
-                    onFillModeChange={
-                        setFillMode
-                    }
-                />
-
-                <ScanResults
-                    result={
-                        result
-                    }
-                    loading={
-                        loading
-                    }
-                    leadData={
-                        leadData
-                    }
-                    testingForm={
-                        testingForm
-                    }
-                    testResult={
-                        testResult
-                    }
-                    testError={
-                        testError
-                    }
-                    onTestFill={
-                        handleTestFill
-                    }
-                    fillMode={
-                        fillMode
-                    }
-                />
-            </Content>
-        </>
-    );
+        <ScanResults
+          result={result}
+          loading={loading}
+          leadData={leadData}
+          testingForm={testingForm}
+          testResult={testResult}
+          testError={testError}
+          onTestFill={handleTestFill}
+          fillMode={fillMode}
+        />
+      </Content>
+    </>
+  );
 };
