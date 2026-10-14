@@ -35,5 +35,9 @@ jobs:
         run: npm ci
         working-directory: server
 
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+        working-directory: server
+
       - name: Run Quality Gate
         run: npm run quality:check
