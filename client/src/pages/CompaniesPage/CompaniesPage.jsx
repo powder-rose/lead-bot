@@ -235,6 +235,7 @@ export function CompaniesPage() {
       </Content>
 
       <CompanyEditorModal
+        key={editingCompany?.id ?? 'new-company'}
         company={editingCompany}
         open={editorOpen}
         onClose={closeEditorModal}
@@ -242,6 +243,7 @@ export function CompaniesPage() {
       />
 
       <CreateCampaign
+        key={campaignModalOpen ? 'campaign-open' : 'campaign-closed'}
         open={campaignModalOpen}
         onClose={() => setCampaignModalOpen(false)}
         selectedCount={selectedCount}

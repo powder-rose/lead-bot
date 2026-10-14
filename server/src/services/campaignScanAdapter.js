@@ -77,12 +77,6 @@ export const scanWebsiteThroughLeadBot = async website => {
     }
 
     return sanitizeCampaignScanResult(payload.data || {});
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new Error(`Сканирование превысило ${Math.round(SCAN_TIMEOUT_MS / 1000)} сек.`);
-    }
-
-    throw error;
   } finally {
     clearTimeout(timeout);
   }

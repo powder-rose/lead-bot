@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   CancelButton,
@@ -43,13 +43,6 @@ export function CompanyEditorModal({ company, open, onClose, onSave }) {
   const [form, setForm] = useState(() => getInitialForm(company));
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setForm(getInitialForm(company));
-    setError(null);
-  }, [company, open]);
 
   function handleClose() {
     if (saving) return;

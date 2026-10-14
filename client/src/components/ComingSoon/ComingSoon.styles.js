@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-import { PINK, PINK_DARK, TEXT, MUTED, BORDER } from '../../styles/theme.js';
+import { PINK_DARK, TEXT, MUTED, BORDER } from '../../styles/theme.js';
 
 export const ComingSoonCard = styled.section`
   min-height: 240px;

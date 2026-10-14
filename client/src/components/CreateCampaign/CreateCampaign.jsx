@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { createCampaign } from '../../api/campaignsApi.js';
 import {
   Actions,
@@ -38,21 +38,13 @@ export const CreateCampaign = ({
 }) => {
   const saved = getSavedSender();
 
-  const [name, setName] = useState(suggestedName);
+  const [name, setName] = useState(() => suggestedName);
   const [senderName, setSenderName] = useState(saved.senderName || '');
   const [senderPhone, setSenderPhone] = useState(saved.senderPhone || '');
   const [senderEmail, setSenderEmail] = useState(saved.senderEmail || '');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setName(suggestedName || 'Новая кампания');
-    setMessage('');
-    setError(null);
-  }, [open, suggestedName]);
 
   if (!open) return null;
 

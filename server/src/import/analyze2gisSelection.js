@@ -1,10 +1,6 @@
 import unzipper from 'unzipper';
 import sax from 'sax';
 
-import { normalizeDomain, normalizeWebsite } from '../utils/domain.js';
-
-import { getDomainRejectReason } from './domainFilters.js';
-
 import { selectBusinessWebsite } from './selectBusinessWebsite.js';
 
 const WORKSHEET_PATH = 'xl/worksheets/sheet1.xml';

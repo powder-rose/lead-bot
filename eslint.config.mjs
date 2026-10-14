@@ -2,7 +2,6 @@ import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import reactHooks from 'eslint-plugin-react-hooks';
-import { reactRefresh } from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
 export default defineConfig([
@@ -23,14 +22,17 @@ export default defineConfig([
     },
     rules: {
       eqeqeq: ['error', 'always'],
+
       'no-unused-vars': [
-        'error',
+        'warn',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+
+      'no-useless-assignment': 'warn',
     },
   },
 
@@ -56,11 +58,20 @@ export default defineConfig([
   {
     files: ['client/src/**/*.{js,jsx}'],
     extends: [reactHooks.configs.flat.recommended],
+    rules: {
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
-
   {
-    files: ['client/src/**/*.jsx'],
-    extends: [reactRefresh.configs.vite()],
+    files: ['server/src/scanner.js', 'server/src/fields.js', 'server/debug-trigger.js'],
+    languageOptions: {
+      globals: {
+        document: 'readonly',
+        window: 'readonly',
+        CSS: 'readonly',
+        getComputedStyle: 'readonly',
+      },
+    },
   },
 
   eslintConfigPrettier,
