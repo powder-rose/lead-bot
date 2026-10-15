@@ -1,7 +1,7 @@
-import { API_URL } from '../constants/api.js';
+import { apiFetch } from './apiFetch.js';
 
 const request = async (path, options = {}) => {
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await apiFetch(path, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
