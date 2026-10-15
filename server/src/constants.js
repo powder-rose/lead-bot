@@ -1,4 +1,6 @@
-export const PORT = 3000;
+import { readPort } from './config.js';
+
+export const PORT = readPort(process.env.PORT);
 
 export const MAX_ADDITIONAL_PAGES = 4;
 

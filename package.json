@@ -8,7 +8,7 @@
     "format:check": "prettier --check \"client/**/*.{js,jsx,css,html,json}\" \"server/**/*.{js,jsx,css,html,json}\"",
     "lint": "eslint --config eslint.config.mjs \"client/**/*.{js,jsx}\" \"server/**/*.js\" eslint.config.mjs",
     "lint:fix": "eslint --config eslint.config.mjs \"client/**/*.{js,jsx}\" \"server/**/*.js\" eslint.config.mjs --fix",
-    "quality:check": "npm run format:check && npm run lint && npm --prefix client run build && npm --prefix server test"
+    "quality:check": "npm run format:check && npm run lint && npm --prefix client run build && npm --prefix server test && npm --prefix server run test:ui"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

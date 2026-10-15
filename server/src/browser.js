@@ -1,7 +1,11 @@
 import { chromium } from 'playwright';
 
+import { createScanProxy, BLOCKED_HEADER } from './security/scanProxy.js';
+import { UnsafeTargetError } from './security/publicTarget.js';
+
 let sharedBrowser = null;
 let sharedBrowserPromise = null;
+let sharedProxy = null;
 
 /*
  * Один Chromium на весь backend.
@@ -15,23 +19,45 @@ let sharedBrowserPromise = null;
  *   для каждого запроса.
  */
 const launchSharedBrowser = async () => {
-  const browser = await chromium.launch({
-    headless: true,
-  });
+  const proxy = await createScanProxy();
+
+  let browser;
+
+  try {
+    browser = await chromium.launch({
+      headless: true,
+
+      proxy: {
+        server: proxy.url,
+        bypass: '<-loopback>',
+      },
+
+      args: [
+        '--disable-quic',
+        '--force-webrtc-ip-handling-policy=disable_non_proxied_udp',
+        '--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1',
+      ],
+    });
+  } catch (error) {
+    await proxy.close();
+    throw error;
+  }
 
   sharedBrowser = browser;
+  sharedProxy = proxy;
 
   browser.on('disconnected', () => {
     if (sharedBrowser === browser) {
       sharedBrowser = null;
+      sharedBrowserPromise = null;
+      sharedProxy = null;
     }
 
-    sharedBrowserPromise = null;
+    proxy.close().catch(() => {});
   });
 
   return browser;
 };
-
 export const getSharedBrowser = async () => {
   if (sharedBrowser?.isConnected()) {
     return sharedBrowser;
@@ -78,6 +104,8 @@ export const createBrowserSession = async (options = {}) => {
 
   const context = await browser.newContext({
     ignoreHTTPSErrors: true,
+    serviceWorkers: 'block',
+    acceptDownloads: false,
 
     viewport: {
       width: 1440,
@@ -123,6 +151,8 @@ export const createBrowserSession = async (options = {}) => {
     });
   }
 
+  await context.routeWebSocket('**/*', socket => socket.close());
+
   const page = await context.newPage();
 
   /*
@@ -150,12 +180,18 @@ export const closeSharedBrowser = async () => {
   const browser =
     sharedBrowser || (sharedBrowserPromise ? await sharedBrowserPromise.catch(() => null) : null);
 
-  sharedBrowser = null;
+  const proxy = sharedProxy;
 
+  sharedBrowser = null;
   sharedBrowserPromise = null;
+  sharedProxy = null;
 
   if (browser?.isConnected()) {
     await browser.close().catch(() => {});
+  }
+
+  if (proxy) {
+    await proxy.close();
   }
 };
 
@@ -196,16 +232,13 @@ export const gotoSafely = async (page, url, options = {}) => {
       }
 
       const response = await page.goto(url, {
-        /*
-         * Не ждём networkidle:
-         * счётчики/метрика/чаты
-         * могут держать соединение
-         * бесконечно.
-         */
         waitUntil: 'commit',
-
         timeout,
       });
+
+      if (response?.headers()[BLOCKED_HEADER] === '1') {
+        throw new UnsafeTargetError('Сайт попытался обратиться к запрещённому адресу');
+      }
 
       await page
         .waitForLoadState('domcontentloaded', {
@@ -258,6 +291,10 @@ export const gotoSafely = async (page, url, options = {}) => {
 
       return response;
     } catch (error) {
+      if (error instanceof UnsafeTargetError) {
+        throw error;
+      }
+
       lastError = error;
 
       console.log(`Ошибка загрузки, попытка ${attempt}:`, error.message);

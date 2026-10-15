@@ -1,4 +1,4 @@
-import { API_URL } from '../constants/api.js';
+import { apiFetch } from './apiFetch.js';
 
 const readResponse = async response => {
   const data = await response.json();
@@ -15,7 +15,7 @@ export const previewCompaniesImport = async file => {
 
   formData.append('file', file);
 
-  const response = await fetch(`${API_URL}/api/companies/import/preview`, {
+  const response = await apiFetch(`/api/companies/import/preview`, {
     method: 'POST',
 
     body: formData,
@@ -25,7 +25,7 @@ export const previewCompaniesImport = async file => {
 };
 
 export const analyzeCompaniesImport = async importId => {
-  const response = await fetch(`${API_URL}/api/companies/import/analyze`, {
+  const response = await apiFetch(`/api/companies/import/analyze`, {
     method: 'POST',
 
     headers: {
@@ -41,7 +41,7 @@ export const analyzeCompaniesImport = async importId => {
 };
 
 export const getCompaniesImportRubrics = async importId => {
-  const response = await fetch(`${API_URL}/api/companies/import/rubrics`, {
+  const response = await apiFetch(`/api/companies/import/rubrics`, {
     method: 'POST',
 
     headers: {
@@ -57,7 +57,7 @@ export const getCompaniesImportRubrics = async importId => {
 };
 
 export const analyzeCompaniesImportSelection = async ({ importId, categories, subcategories }) => {
-  const response = await fetch(`${API_URL}/api/companies/import/selection-preview`, {
+  const response = await apiFetch(`/api/companies/import/selection-preview`, {
     method: 'POST',
 
     headers: {
@@ -75,7 +75,7 @@ export const analyzeCompaniesImportSelection = async ({ importId, categories, su
 };
 
 export const commitCompaniesImport = async ({ importId, categories, subcategories }) => {
-  const response = await fetch(`${API_URL}/api/companies/import/commit`, {
+  const response = await apiFetch(`/api/companies/import/commit`, {
     method: 'POST',
 
     headers: {
@@ -97,7 +97,7 @@ export const discardCompaniesImport = async importId => {
     return null;
   }
 
-  const response = await fetch(`${API_URL}/api/companies/import/discard`, {
+  const response = await apiFetch(`/api/companies/import/discard`, {
     method: 'POST',
 
     headers: {

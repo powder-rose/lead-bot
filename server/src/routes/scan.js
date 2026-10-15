@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import { createBrowserSession, gotoSafely } from '../browser.js';
 
+import { resolvePublicTarget, UnsafeTargetError } from '../security/publicTarget.js';
+
 import {
   analyzeForm,
   createFormSignature,
@@ -178,12 +180,7 @@ router.post('/', async (req, res) => {
   let session;
 
   try {
-    const parsed = new URL(url);
-
-    if (!['http:', 'https:'].includes(parsed.protocol)) {
-      throw new Error('Разрешены только HTTP и HTTPS сайты');
-    }
-
+    await resolvePublicTarget(url);
     session = await createBrowserSession({
       blockHeavyResources: true,
     });
@@ -383,7 +380,7 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('SCAN ERROR:', error.message);
 
-    res.status(500).json({
+    res.status(error instanceof UnsafeTargetError ? error.status : 500).json({
       error: error.message,
 
       data: null,
