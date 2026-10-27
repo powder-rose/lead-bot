@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { API_URL } from '../../constants/api.js';
 
 import { Topbar, Eyebrow, PageTitle, PageSubtitle, EnvironmentBadge } from './Header.styles.js';
+import { SessionContext } from '../Session/SessionContext.js';
+import { SessionActions, SessionButton, SessionError } from '../Session/Session.styles.js';
 
 const HEALTH_CHECK_INTERVAL_MS = 10000;
 const HEALTH_CHECK_TIMEOUT_MS = 3000;
 
 export const Header = ({ eyebrow = 'LeadBot', title, subtitle, showServerStatus = true }) => {
   const [serverStatus, setServerStatus] = useState('checking');
+  const session = useContext(SessionContext);
 
   useEffect(() => {
     if (!showServerStatus) {
@@ -72,20 +75,28 @@ export const Header = ({ eyebrow = 'LeadBot', title, subtitle, showServerStatus 
         {subtitle && <PageSubtitle>{subtitle}</PageSubtitle>}
       </div>
 
-      {showServerStatus && (
-        <EnvironmentBadge
-          $status={serverStatus}
-          role="status"
-          aria-live="polite"
-          title={
-            serverStatus === 'disconnected' ? 'LeadBot не получает ответ от backend' : undefined
-          }
-        >
-          <i />
+      <SessionActions>
+        {showServerStatus && (
+          <EnvironmentBadge
+            $status={serverStatus}
+            role="status"
+            aria-live="polite"
+            title={
+              serverStatus === 'disconnected' ? 'LeadBot не получает ответ от backend' : undefined
+            }
+          >
+            <i />
 
-          {statusLabel}
-        </EnvironmentBadge>
-      )}
+            {statusLabel}
+          </EnvironmentBadge>
+        )}
+        {session && (
+          <SessionButton onClick={session.logout} disabled={session.loggingOut}>
+            {session.loggingOut ? 'Выходим…' : 'Выйти'}
+          </SessionButton>
+        )}
+        {session?.logoutError && <SessionError role="alert">{session.logoutError}</SessionError>}
+      </SessionActions>
     </Topbar>
   );
 };

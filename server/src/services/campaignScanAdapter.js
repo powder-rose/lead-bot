@@ -1,5 +1,4 @@
-const INTERNAL_API_URL =
-  process.env.LEADBOT_INTERNAL_API_URL || `http://127.0.0.1:${process.env.PORT || 3000}`;
+import { getInternalScanHeaders, getInternalScanUrl } from '../auth/internalScanAuth.js';
 
 const SCAN_TIMEOUT_MS = Math.max(Number(process.env.CAMPAIGN_SCAN_TIMEOUT_MS) || 90000, 10000);
 
@@ -53,15 +52,17 @@ export const scanWebsiteThroughLeadBot = async website => {
   const timeout = setTimeout(() => controller.abort(), SCAN_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${INTERNAL_API_URL}/api/scan`, {
+    const response = await fetch(getInternalScanUrl(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getInternalScanHeaders(),
       },
       body: JSON.stringify({
         url: website,
       }),
       signal: controller.signal,
+      redirect: 'error',
     });
 
     let payload;

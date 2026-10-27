@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import { createBrowserSession, gotoSafely } from '../browser.js';
 
+import { resolvePublicTarget, UnsafeTargetError } from '../security/publicTarget.js';
+
 import {
   applyFormFieldValue,
   captureCandidateScreenshot,
@@ -29,6 +31,8 @@ router.post('/', async (req, res) => {
   let session;
 
   try {
+    await resolvePublicTarget(pageUrl);
+
     session = await createBrowserSession({
       blockHeavyResources: false,
     });
@@ -460,7 +464,7 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('TEST FILL ERROR:', error.message);
 
-    res.status(500).json({
+    res.status(error instanceof UnsafeTargetError ? error.status : 500).json({
       error: error.message,
 
       data: null,

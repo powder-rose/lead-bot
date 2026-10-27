@@ -1,40 +1,30 @@
-import express from 'express';
-import cors from 'cors';
+import { readServerConfig } from './src/config.js';
+import { createApp } from './src/app.js';
+import { getInternalScanUrl } from './src/auth/internalScanAuth.js';
 
-import { PORT } from './src/constants.js';
+// Validate access settings before loading modules that open the database.
+const config = readServerConfig();
+getInternalScanUrl();
+const [companies, scan, testFill, companiesImport, { closeSharedBrowser }] = await Promise.all([
+  import('./src/routes/companies.js'),
+  import('./src/routes/scan.js'),
+  import('./src/routes/test-fill.js'),
+  import('./src/routes/companies-import.js'),
+  import('./src/browser.js'),
+]);
 
-import companiesRouter from './src/routes/companies.js';
-
-import scanRouter from './src/routes/scan.js';
-import testFillRouter from './src/routes/test-fill.js';
-
-import companiesImportRouter from './src/routes/companies-import.js';
-
-import { closeSharedBrowser } from './src/browser.js';
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    error: null,
-
-    data: {
-      status: 'ok',
-    },
-  });
+const app = createApp({
+  config,
+  routers: {
+    '/api/scan': scan.default,
+    '/api/test-fill': testFill.default,
+    '/api/companies': companies.default,
+    '/api/companies/import': companiesImport.default,
+  },
 });
 
-app.use('/api/scan', scanRouter);
-
-app.use('/api/test-fill', testFillRouter);
-app.use('/api/companies', companiesRouter);
-app.use('/api/companies/import', companiesImportRouter);
-
-const server = app.listen(PORT, () => {
-  console.log(`Server started: http://localhost:${PORT}`);
+const server = app.listen(config.port, config.host, () => {
+  console.log(`Server started: http://${config.host}:${config.port}`);
 });
 
 let shuttingDown = false;
